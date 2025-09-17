@@ -1,0 +1,13 @@
+---
+authors:
+  - Alison Hart (@alisonlhart)
+  - Kate Case (@Qalthos)
+license_file: LICENSE
+name: mcp_builder
+namespace: ansible
+description: Ansible collection for building and installing MCP (Model Context Protocol) servers from source.
+readme: README.md
+repository: https://github.com/ansible/mcp_builder
+issues: https://github.com/ansible/mcp_builder/issues
+tags: [ai, tools, mcp]
+version: 1.0.0

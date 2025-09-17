@@ -1,62 +1,52 @@
-# POC - Building MCPs in Execution Environments 
+# Ansible Mcp_builder Collection
 
-A proof-of-concept for building MCPs into EEs via roles. 
+This repository contains the `ansible.mcp_builder` Ansible Collection.
 
-Includes a role-based collection `ansible.mcp_builder` for building and installing MCP (Model Context Protocol) servers from source.
+An Ansible collection for building and installing MCP (Model Context Protocol) servers from source.
 
-## Collection Contents
 
-- **`common` role**: Sets up generic MCP build environment with Go
-- **`github_mcp` role**: Builds GitHub MCP server from source
-
-## Quick Start
+## Using this collection
 
 ```bash
 # Install the collection
-ade install -e collections/ansible_collections/ansible/mcp_builder
+ade install -e <path-to-collection OR ansible.mcp_builder>
 
 # Run with defaults
 ansible-playbook ansible.mcp_builder.install_mcp --ask-become-pass
 ```
 
-## Customization
+You can also include it in a `requirements.yml` file and install it via
+`ansible-galaxy collection install -r requirements.yml` using the format:
 
-### Go Version
 ```yaml
-vars:
-  common_golang_version: "1.25.0"  # Default: "1.24.4"
+collections:
+  - name: ansible.mcp_builder
 ```
 
-### Installation Path
-```yaml
-vars:
-  common_mcp_base_path: "/opt/mcp"
-```
+See
+[Ansible Using Collections](https://docs.ansible.com/ansible/latest/user_guide/collections_using.html)
+for more details.
 
-### Custom Repository
-```yaml
-vars:
-  github_mcp_repo: "https://github.com/myorg/github-mcp-server.git"
-  github_mcp_branch: "feature-branch"
-```
+## Release notes
 
-## Directory Structure
+See the
+[changelog](https://github.com/ansible-collections/ansible.mcp_builder/tree/main/CHANGELOG.rst).
 
-After installation, you'll find:
-```
-/opt/mcp/github/                   # Default location
-├── github-mcp-server              # Compiled binary
-└── github-mcp-server-wrapper      # Wrapper script
-```
 
-## Requirements
+## More information
 
-- Ansible >= 2.18
-- Target system with curl, git, tar packages
-- Sufficient disk space for Go installation (~500MB)
+<!-- List out where the user can find additional information, such as working group meeting times, slack/matrix channels, or documentation for the product this collection automates. At a minimum, link to: -->
 
-## Development
+- [Ansible collection development forum](https://forum.ansible.com/c/project/collection-development/27)
+- [Ansible User guide](https://docs.ansible.com/ansible/devel/user_guide/index.html)
+- [Ansible Developer guide](https://docs.ansible.com/ansible/devel/dev_guide/index.html)
+- [Ansible Collections Checklist](https://docs.ansible.com/ansible/devel/community/collection_contributors/collection_requirements.html)
+- [Ansible Community code of conduct](https://docs.ansible.com/ansible/devel/community/code_of_conduct.html)
+- [The Bullhorn (the Ansible Contributor newsletter)](https://docs.ansible.com/ansible/devel/community/communication.html#the-bullhorn)
+- [News for Maintainers](https://forum.ansible.com/tag/news-for-maintainers)
 
-See individual role README files for detailed documentation:
-- [Common Role](roles/common/README.md)
-- [GitHub MCP Role](roles/github_mcp/README.md)
+## Licensing
+
+GNU General Public License v3.0 or later.
+
+See [LICENSE](https://www.gnu.org/licenses/gpl-3.0.txt) to see the full text.
