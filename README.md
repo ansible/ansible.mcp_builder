@@ -1,9 +1,21 @@
-# Ansible Mcp_builder Collection
+# Ansible MCP Builder Collection
 
 This repository contains the `ansible.mcp_builder` Ansible Collection.
 
 An Ansible collection for building and installing MCP (Model Context Protocol) servers from source.
 
+## About
+
+The Ansible MCP Builder collection provides roles to build and install MCP servers into environments. It is designed for use with Ansible Execution Environments (EEs).
+
+## Included Content
+
+### **Roles**
+
+Name | Description
+--- | ---
+[ansible.mcp_builder.common](roles/common/README.md) | Installs dependencies and sets up generic environment for MCP servers.
+[ansible.mcp_builder.github_mcp](roles/github_mcp/README.md) | Install the [Github MCP Server](https://github.com/github/github-mcp-server).
 
 ## Using this collection
 
