@@ -1,0 +1,50 @@
+---
+# Common role tasks - Set up generic MCP build environment
+- name: Install required packages for building
+  ansible.builtin.package:
+    name:
+      - curl
+      - git
+      - tar
+    state: present
+  become: true
+
+- name: Create Go installation directory
+  ansible.builtin.file:
+    path: /usr/local
+    state: directory
+    mode: '0755'
+  become: true
+  when: common_install_go
+
+- name: Download and extract Go
+  ansible.builtin.unarchive:
+    src: "https://golang.org/dl/go{{ common_golang_version }}.linux-amd64.tar.gz"
+    dest: /usr/local
+    remote_src: true
+    owner: root
+    group: root
+    mode: '0755'
+    creates: /usr/local/go/bin/go
+  become: true
+  when: common_install_go
+
+- name: Set Go environment variables
+  ansible.builtin.lineinfile:
+    path: /etc/environment
+    line: "{{ item }}"
+    create: true
+    mode: '0644'
+  loop:
+    - 'PATH="/usr/local/go/bin:$PATH"'
+    - 'GOPATH="{{ common_go_path }}"'
+    - 'GOCACHE="{{ common_go_cache }}"'
+  become: true
+  when: common_install_go
+
+- name: Create base MCP directory
+  ansible.builtin.file:
+    path: "{{ common_mcp_base_path }}"
+    state: directory
+    mode: '0755'
+  become: true

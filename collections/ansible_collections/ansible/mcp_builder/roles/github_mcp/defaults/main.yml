@@ -1,0 +1,10 @@
+---
+# Default variables for github_mcp role
+# Users can override these in their playbooks or group_vars
+
+# GitHub MCP Server repository details
+github_mcp_repo: "https://github.com/github/github-mcp-server.git"
+github_mcp_branch: "main"
+
+# Build settings
+github_mcp_cleanup_source: true

@@ -1,0 +1,8 @@
+---
+- name: Configure GitHub MCP
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  roles:
+    - ansible.mcp_builder.github_mcp

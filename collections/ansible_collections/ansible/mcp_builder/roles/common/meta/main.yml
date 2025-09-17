@@ -1,0 +1,15 @@
+---
+galaxy_info:
+  author: alisonlhart
+  description: Common role for MCP Builder - sets up generic MCP build environment
+  license: MIT
+  min_ansible_version: '2.18'
+  platforms:
+    - name: EL
+      versions:
+        - all
+    - name: Ubuntu
+      versions:
+        - all
+
+dependencies: []

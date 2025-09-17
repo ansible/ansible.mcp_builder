@@ -1,0 +1,14 @@
+---
+# Default variables for common role
+# Users can override these in their playbooks or group_vars
+
+# Go version to install
+common_golang_version: "1.24.4"
+
+# Base path for MCP installations
+common_mcp_base_path: "/opt/mcp"
+
+# Go environment paths
+common_install_go: true
+common_go_path: "/go"
+common_go_cache: "/tmp/go-cache"

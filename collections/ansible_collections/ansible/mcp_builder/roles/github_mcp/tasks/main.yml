@@ -1,0 +1,74 @@
+---
+# GitHub MCP role tasks
+- name: Set GitHub MCP build path
+  ansible.builtin.set_fact:
+    github_mcp_build_path: "{{ common_mcp_base_path }}/github/build"
+
+- name: Create GitHub MCP directory
+  ansible.builtin.file:
+    path: "{{ common_mcp_base_path }}/github"
+    state: directory
+    mode: '0755'
+  become: true
+
+- name: Create GitHub MCP build directory
+  ansible.builtin.file:
+    path: "{{ github_mcp_build_path }}"
+    state: directory
+    mode: '0755'
+  become: true
+
+- name: Clone GitHub MCP Server repository
+  ansible.builtin.git:
+    repo: "{{ github_mcp_repo }}"
+    dest: "{{ github_mcp_build_path }}"
+    version: "{{ github_mcp_branch }}"
+    force: true
+  become: true
+  environment:
+    PATH: "/usr/local/go/bin:/usr/local/bin:/usr/bin:/bin"
+
+- name: Download Go modules for GitHub MCP Server
+  ansible.builtin.command:
+    cmd: go mod download
+    chdir: "{{ github_mcp_build_path }}"
+    creates: "{{ github_mcp_build_path }}/go.sum"
+  become: true
+  environment:
+    PATH: "/usr/local/go/bin:/usr/local/bin:/usr/bin:/bin"
+    GOPATH: "{{ common_go_path }}"
+    GOCACHE: "{{ common_go_cache }}"
+
+- name: Build GitHub MCP Server binary
+  ansible.builtin.command:
+    cmd: go build -ldflags="-s -w" -o "{{ common_mcp_base_path }}/github/github-mcp-server" ./cmd/github-mcp-server/
+    chdir: "{{ github_mcp_build_path }}"
+    creates: "{{ common_mcp_base_path }}/github/github-mcp-server"
+  become: true
+  environment:
+    PATH: "/usr/local/go/bin:/usr/local/bin:/usr/bin:/bin"
+    GOPATH: "{{ common_go_path }}"
+    GOCACHE: "{{ common_go_cache }}"
+    CGO_ENABLED: "0"
+    GOOS: "linux"
+
+- name: Make GitHub MCP Server binary executable
+  ansible.builtin.file:
+    path: "{{ common_mcp_base_path }}/github/github-mcp-server"
+    mode: '0755'
+  become: true
+
+- name: Create GitHub MCP server wrapper script
+  ansible.builtin.copy:
+    dest: "{{ common_mcp_base_path }}/github/github-mcp-server-wrapper"
+    content: |
+      #!/bin/bash
+      exec "{{ common_mcp_base_path }}/github/github-mcp-server" "$@"
+    mode: '0755'
+  become: true
+
+- name: Clean up build directory
+  ansible.builtin.file:
+    path: "{{ github_mcp_build_path }}"
+    state: absent
+  become: true
