@@ -17,23 +17,45 @@ Name | Description
 [ansible.mcp_builder.common](roles/common/README.md) | Installs dependencies and sets up generic environment for MCP servers.
 [ansible.mcp_builder.github_mcp](roles/github_mcp/README.md) | Install the [Github MCP Server](https://github.com/github/github-mcp-server).
 
-## Using this collection
+## Install MCP in EE via the ansible.mcp_builder roles
 
-```bash
-# Install the collection
-ade install -e <path-to-collection OR ansible.mcp_builder>
+The `ansible.mcp_builder` role is designed to run as a final step in building an EE.
 
-# Run with defaults
-ansible-playbook ansible.mcp_builder.install_mcp --ask-become-pass
+```
+  append_final: |
+    RUN ansible-playbook ansible.mcp_builder.install_mcp
 ```
 
-You can also include it in a `requirements.yml` file and install it via
-`ansible-galaxy collection install -r requirements.yml` using the format:
+### Prerequisities
 
-```yaml
-collections:
-  - name: ansible.mcp_builder
+- `ansible.mcp_builder` cloned localy
+- `ansible.mcp` cloned locally
+
+Use the provided [examples/](examples/). You will need the `test-playbook.yml`, `requirements.yml`, and `execution-environment.yml` files.
+
+Update the [examples/execution-environment.yml](examples/execution-environment.yml)`additional_build_files` paths with your local paths to the cloned collections.
+
+### Building an EE
+
+To build the execution environment, run:
+
 ```
+ansible-builder build --tag my-mcp-ee:latest
+```
+
+### Running the test playbook
+
+After the EE is built successfully, run a test with the test-playbook.
+
+Update the `Create GitHub issue` task to fill out your desired repo and issue details.
+
+Run with:
+
+```
+ansible-navigator run test-playbook.yml --eei localhost/my-mcp-ee:latest --ce podman --pp never -m stdout
+```
+
+The Github issue will be created with your specified details.
 
 See
 [Ansible Using Collections](https://docs.ansible.com/ansible/latest/user_guide/collections_using.html)
