@@ -86,6 +86,7 @@
 
 - name: Find uv installation path
   ansible.builtin.shell: |
+    set -o pipefail
     # Try multiple methods to find uv
     if command -v uv >/dev/null 2>&1; then
       command -v uv
@@ -110,12 +111,13 @@
     state: link
     force: true
   become: true
-  when: 
+  when:
     - common_uv_install
     - common_uv_path.stdout != ""
 
 - name: Find uvx installation path
   ansible.builtin.shell: |
+    set -o pipefail
     # Try multiple methods to find uvx
     if command -v uvx >/dev/null 2>&1; then
       command -v uvx
@@ -131,6 +133,7 @@
     executable: /bin/bash
   register: common_uvx_path
   when: common_uv_install
+  changed_when: false
 
 - name: Create symlink for uvx in /usr/local/bin
   ansible.builtin.file:
@@ -139,7 +142,7 @@
     state: link
     force: true
   become: true
-  when: 
+  when:
     - common_uv_install
     - common_uvx_path.stdout != ""
 
