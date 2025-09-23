@@ -67,6 +67,20 @@
     mode: "0755"
   become: true
 
+- name: Create symlink in unified bin directory
+  ansible.builtin.file:
+    src: "{{ common_mcp_base_path }}/github/github-mcp-server"
+    dest: "{{ common_mcp_base_path }}/bin/github-mcp-server"
+    state: link
+  become: true
+
+- name: Create direct symlink in /usr/local/bin for container compatibility
+  ansible.builtin.file:
+    src: "{{ common_mcp_base_path }}/github/github-mcp-server"
+    dest: "/usr/local/bin/github-mcp-server"
+    state: link
+  become: true
+
 - name: Clean up build directory
   ansible.builtin.file:
     path: "{{ github_mcp_build_path }}"

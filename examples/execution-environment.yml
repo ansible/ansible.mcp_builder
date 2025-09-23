@@ -3,16 +3,24 @@ version: 3
 
 images:
   base_image:
-    name: registry.redhat.io/ansible-automation-platform-25/ee-supported-rhel8:latest
-
+    name: registry.redhat.io/ansible-automation-platform-25/ee-minimal-rhel9:latest
 dependencies:
-  system: |
+  galaxy: requirements.yml
 
 options:
   package_manager_path: /usr/bin/microdnf
-# additional_build_files:
 
-# additional_build_steps:
-#   prepend_base:
+additional_build_files:
+  - src: /home/ali/code/mcp-builder # <replace with local path to your ansible.mcp-builder clone>
+    dest: ansible.mcp_builder
+  - src: /home/ali/code/ansible.mcp # <replace with local path to your ansible.mcp clone>
+    dest: ansible.mcp
 
-#   append_final:
+additional_build_steps:
+  prepend_galaxy: |
+    COPY _build/ansible.mcp_builder /tmp/ansible.mcp_builder
+    COPY _build/ansible.mcp /tmp/ansible.mcp
+  append_galaxy: |
+    RUN rm -rf /tmp/ansible.mcp_builder
+  append_final: |
+    RUN ansible-playbook ansible.mcp_builder.install_mcp

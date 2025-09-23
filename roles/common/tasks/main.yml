@@ -1,14 +1,7 @@
 ---
 # Common role tasks - Set up generic MCP build environment
-- name: Install required packages for building
-  ansible.builtin.package:
-    name:
-      - curl
-      - git
-      - tar
-    state: present
-  become: true
 
+# ---------------- Go setup tasks ----------------
 - name: Create Go installation directory
   ansible.builtin.file:
     path: /usr/local
@@ -42,9 +35,280 @@
   become: true
   when: common_install_go
 
-- name: Create base MCP directory
+# ---------------- Node setup tasks ----------------
+- name: Install Node.js and npm via system package manager
+  ansible.builtin.package:
+    name:
+      - nodejs
+      - npm
+    state: present
+  become: true
+  when: common_npm_install
+
+- name: Verify Node.js installation
+  ansible.builtin.command: node --version
+  register: common_node_version_output
+  when: common_npm_install
+  changed_when: false
+
+- name: Display Node.js version
+  ansible.builtin.debug:
+    msg: "Installed Node.js version: {{ common_node_version_output.stdout }}"
+  when: common_npm_install and common_node_version_output is defined
+
+- name: Verify NPM installation
+  ansible.builtin.command: npm --version
+  register: common_npm_version_output
+  when: common_npm_install
+  changed_when: false
+
+- name: Display NPM version
+  ansible.builtin.debug:
+    msg: "Installed NPM version: {{ common_npm_version_output.stdout }}"
+  when: common_npm_install and common_npm_version_output is defined
+
+# ---------------- uv setup tasks ----------------
+- name: Download uv installer
+  ansible.builtin.get_url:
+    url: "https://astral.sh/uv/install.sh"
+    dest: "/tmp/uv-install.sh"
+    mode: "0755"
+  when: common_uv_install
+
+- name: Install uv
+  ansible.builtin.shell: |
+    set -o pipefail
+    /tmp/uv-install.sh
+  args:
+    executable: /bin/bash
+  when: common_uv_install
+  changed_when: true
+
+- name: Find uv installation path
+  ansible.builtin.shell: |
+    # Try multiple methods to find uv
+    if command -v uv >/dev/null 2>&1; then
+      command -v uv
+    elif [ -f "$HOME/.cargo/bin/uv" ]; then
+      echo "$HOME/.cargo/bin/uv"
+    elif [ -f "$HOME/.local/bin/uv" ]; then
+      echo "$HOME/.local/bin/uv"
+    else
+      # Search more broadly
+      find $HOME -name "uv" -type f -executable 2>/dev/null | head -1
+    fi
+  args:
+    executable: /bin/bash
+  register: common_uv_path
+  when: common_uv_install
+  changed_when: false
+
+- name: Create symlink for uv in /usr/local/bin
   ansible.builtin.file:
-    path: "{{ common_mcp_base_path }}"
+    src: "{{ common_uv_path.stdout }}"
+    dest: /usr/local/bin/uv
+    state: link
+    force: true
+  become: true
+  when: 
+    - common_uv_install
+    - common_uv_path.stdout != ""
+
+- name: Find uvx installation path
+  ansible.builtin.shell: |
+    # Try multiple methods to find uvx
+    if command -v uvx >/dev/null 2>&1; then
+      command -v uvx
+    elif [ -f "$HOME/.cargo/bin/uvx" ]; then
+      echo "$HOME/.cargo/bin/uvx"
+    elif [ -f "$HOME/.local/bin/uvx" ]; then
+      echo "$HOME/.local/bin/uvx"
+    else
+      # Search more broadly
+      find $HOME -name "uvx" -type f -executable 2>/dev/null | head -1
+    fi
+  args:
+    executable: /bin/bash
+  register: common_uvx_path
+  when: common_uv_install
+
+- name: Create symlink for uvx in /usr/local/bin
+  ansible.builtin.file:
+    src: "{{ common_uvx_path.stdout }}"
+    dest: /usr/local/bin/uvx
+    state: link
+    force: true
+  become: true
+  when: 
+    - common_uv_install
+    - common_uvx_path.stdout != ""
+
+- name: Verify uv installation
+  ansible.builtin.command: uv --version
+  register: common_uv_version_output
+  when: common_uv_install
+  changed_when: false
+
+- name: Display uv version
+  ansible.builtin.debug:
+    msg: "Installed uv version: {{ common_uv_version_output.stdout }}"
+  when: common_uv_install and common_uv_version_output is defined
+
+- name: Create MCP servers directory
+  ansible.builtin.file:
+    path: "{{ common_mcp_base_path }}/npm_installs"
+    state: directory
+    mode: "0755"
+  when:
+    - common_npm_install
+    - common_npm_mcp_servers | length > 0
+
+- name: Initialize package.json for MCP servers
+  ansible.builtin.shell: |
+    set -o pipefail
+    cd {{ common_mcp_base_path }}/npm_installs
+    if [ ! -f package.json ]; then
+      npm init -y
+    fi
+  args:
+    executable: /bin/bash
+    creates: "{{ common_mcp_base_path }}/npm_installs/package.json"
+  when:
+    - common_npm_install
+    - common_npm_mcp_servers | length > 0
+  changed_when: true
+
+- name: Install MCP servers via npm
+  ansible.builtin.shell: |
+    set -o pipefail
+    cd {{ common_mcp_base_path }}/npm_installs
+    npm install {{ item }}
+  args:
+    executable: /bin/bash
+  loop: "{{ common_npm_mcp_servers }}"
+  when:
+    - common_npm_install
+    - common_npm_mcp_servers | length > 0
+  register: common_mcp_install_result
+  failed_when: false
+  changed_when: common_mcp_install_result.rc == 0
+
+- name: Create unified MCP bin directory
+  ansible.builtin.file:
+    path: "{{ common_mcp_base_path }}/bin"
     state: directory
     mode: "0755"
   become: true
+
+- name: Create direct symlinks in /usr/local/bin for npm servers
+  ansible.builtin.shell: |
+    set -o pipefail
+    if [ -d "{{ common_mcp_base_path }}/npm_installs/node_modules/.bin" ]; then
+      cd {{ common_mcp_base_path }}/npm_installs/node_modules/.bin
+      for binary in *; do
+        if [ -f "$binary" ] && [ -x "$binary" ]; then
+          ln -sf "{{ common_mcp_base_path }}/npm_installs/node_modules/.bin/$binary" "/usr/local/bin/$binary"
+        fi
+      done
+    fi
+  args:
+    executable: /bin/bash
+  become: true
+  when:
+    - common_npm_install
+    - common_npm_mcp_servers | length > 0
+  changed_when: true
+
+- name: Install MCP servers from PyPI using uv
+  ansible.builtin.shell: |
+    set -o pipefail
+    uv tool install {{ item }}
+  args:
+    executable: /bin/bash
+  loop: "{{ common_pypi_mcp_servers }}"
+  when:
+    - common_uv_install
+    - common_pypi_mcp_servers | length > 0
+  register: common_pypi_install_result
+  failed_when: false
+  changed_when: common_pypi_install_result.rc == 0
+
+- name: Display successfully installed PyPI MCP servers
+  ansible.builtin.debug:
+    msg: "Successfully installed PyPI MCP server: {{ item.item }}"
+  loop: "{{ common_pypi_install_result.results | default([]) }}"
+  when:
+    - common_uv_install
+    - common_pypi_mcp_servers | length > 0
+    - item.rc == 0
+
+- name: Display failed PyPI MCP server installations
+  ansible.builtin.debug:
+    msg: "Failed to install PyPI MCP server: {{ item.item }}"
+  loop: "{{ common_pypi_install_result.results | default([]) }}"
+  when:
+    - common_uv_install
+    - common_pypi_mcp_servers | length > 0
+    - item.rc != 0
+
+- name: Create wrapper scripts for PyPI MCP servers in /usr/local/bin
+  ansible.builtin.copy:
+    dest: "/usr/local/bin/{{ item }}"
+    content: |
+      #!/bin/bash
+      exec uvx {{ item }} "$@"
+    mode: "0755"
+  become: true
+  loop: "{{ common_pypi_mcp_servers }}"
+  when:
+    - common_uv_install
+    - common_pypi_mcp_servers | length > 0
+
+- name: Verify PyPI MCP servers are callable via uvx
+  ansible.builtin.shell: |
+    set -o pipefail
+    uvx {{ item }} --help || echo "FAILED: {{ item }}"
+  args:
+    executable: /bin/bash
+  loop: "{{ common_pypi_mcp_servers }}"
+  when:
+    - common_uv_install
+    - common_pypi_mcp_servers | length > 0
+  register: common_pypi_verify_result
+  failed_when: false
+  changed_when: false
+
+- name: Display PyPI MCP server verification results
+  ansible.builtin.debug:
+    msg: "{{ 'PyPI MCP server working' if item.rc == 0 else 'PyPI MCP server failed' }}: {{ item.item }}"
+  loop: "{{ common_pypi_verify_result.results | default([]) }}"
+  when:
+    - common_uv_install
+    - common_pypi_mcp_servers | length > 0
+
+- name: Verify MCP servers are callable
+  ansible.builtin.shell: |
+    set -o pipefail
+    /usr/local/bin/{{ item }} --help || echo "FAILED: {{ item }}"
+  args:
+    executable: /bin/bash
+  loop: "{{ common_npm_mcp_servers }}"
+  when:
+    - common_npm_install
+    - common_npm_mcp_servers | length > 0
+  register: common_mcp_verify_result
+  failed_when: false
+  changed_when: false
+
+- name: Display MCP server verification results
+  ansible.builtin.debug:
+    msg: "{{ 'MCP server working' if item.rc == 0 else 'MCP server failed' }}: {{ item.item }}"
+  loop: "{{ common_mcp_verify_result.results | default([]) }}"
+  when:
+    - common_npm_install
+    - common_npm_mcp_servers | length > 0
+
+- name: Display MCP servers usage info
+  ansible.builtin.debug:
+    msg: "MCP servers (npm and PyPI via uvx) are available globally via /usr/local/bin/. You can now run any server directly: <server-name>"
+  when: common_npm_install or common_uv_install

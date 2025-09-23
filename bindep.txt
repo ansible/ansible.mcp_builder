@@ -1,0 +1,7 @@
+git
+tar
+python3-dnf
+python3-pip
+curl-minimal
+ca-certificates
+python3-setuptools

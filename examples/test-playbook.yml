@@ -1,0 +1,33 @@
+---
+- name: MCP Server Integration Demo
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Register vars
+      ansible.builtin.set_fact:
+        "ansible_connection": "ansible.mcp.mcp"
+        "ansible_mcp_server_path": "/opt/mcp/github/github-mcp-server"
+        "ansible_mcp_server_args": ["stdio"]
+        "ansible_mcp_server_env": {
+          "GITHUB_PERSONAL_ACCESS_TOKEN": "<UPDATE-ME>"
+        }
+    # Discover available tools
+    - name: List all available tools
+      ansible.mcp.mcp_get_tools:
+      register: available_tools
+
+    # Execute a tool
+    - name: Create GitHub issue
+      ansible.mcp.mcp_run_tools:
+        tool_name: create_issue
+        tool_args:
+          owner: alisonlhart
+          repo: mcp_demo_files
+          title: "Automated Issue-2"
+          body: "Created by Ansible Playbook - again"
+      register: new_issue
+
+    # Use results in subsequent tasks
+    - name: Display issue URL
+      ansible.builtin.debug:
+        msg: "Created issue: {{ new_issue.result.content.url }}"
