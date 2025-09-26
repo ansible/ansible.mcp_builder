@@ -52,7 +52,7 @@ Update the `Create GitHub issue` task to fill out your desired repo and issue de
 Run with:
 
 ```
-ansible-navigator run test-playbook.yml --eei localhost/my-mcp-ee:latest --ce podman --pp never -m stdout
+ansible-navigator run test-playbook.yml  --eei localhost/my-mcp-ee:latest  --ce podman  --pp never  -m stdout  -i localhost,  -- -c local -vvv
 ```
 
 The Github issue will be created with your specified details.
