@@ -1,0 +1,134 @@
+#!/bin/bash
+
+# MCP Server Management Script
+# Manages MCP servers defined in {{ common_mcp_base_path }}/mcpservers.json
+
+set -euo pipefail
+
+MANIFEST_FILE="{{ common_mcp_base_path }}/mcpservers.json"
+PID_DIR="{{ common_mcp_base_path }}/pids"
+LOG_DIR="{{ common_mcp_base_path }}/logs"
+
+# Ensure directories exist
+mkdir -p "$PID_DIR" "$LOG_DIR"
+
+usage() {
+    echo "Usage: $0 {start|status|list} [server_name]"
+    echo ""
+    echo "Commands:"
+    echo "  start <server>    - Start a specific MCP server"
+    echo "  status [server]   - Show status of server(s)"
+    echo "  list              - List all available MCP servers"
+    echo ""
+    echo "Examples:"
+    echo "  $0 list"
+    echo "  $0 start github_mcp"
+    echo "  $0 status"
+    exit 1
+}
+
+check_manifest() {
+    if [[ ! -f "$MANIFEST_FILE" ]]; then
+        echo "Error: Manifest file not found at $MANIFEST_FILE"
+        exit 1
+    fi
+}
+
+list_servers() {
+    check_manifest
+    echo "Available MCP servers:"
+    jq -r 'keys[]' "$MANIFEST_FILE" | while read -r server; do
+        type=$(jq -r ".[\"$server\"].type" "$MANIFEST_FILE")
+        path=$(jq -r ".[\"$server\"].path" "$MANIFEST_FILE")
+        echo "  - $server (type: $type, path: $path)"
+    done
+}
+
+get_server_info() {
+    local server="$1"
+    check_manifest
+    
+    if ! jq -e ".[\"$server\"]" "$MANIFEST_FILE" >/dev/null 2>&1; then
+        echo "Error: Server '$server' not found in manifest"
+        echo "Available servers:"
+        jq -r 'keys[]' "$MANIFEST_FILE"
+        exit 1
+    fi
+    
+    local path=$(jq -r ".[\"$server\"].path" "$MANIFEST_FILE")
+    local args=$(jq -r ".[\"$server\"].args | join(\" \")" "$MANIFEST_FILE")
+    
+    echo "$path $args"
+}
+
+start_server() {
+    local server="$1"
+    local pid_file="$PID_DIR/$server.pid"
+    local log_file="$LOG_DIR/$server.log"
+    
+    if [[ -f "$pid_file" ]]; then
+        echo "Server '$server' appears to already be started (PID file exists: $(cat "$pid_file"))"
+        echo "Check status with: $0 status $server"
+        return 0
+    fi
+    
+    local cmd=$(get_server_info "$server")
+    echo "Starting MCP server '$server'..."
+    echo "Command: $cmd"
+    
+    # Start the server in background and capture PID
+    nohup $cmd > "$log_file" 2>&1 &
+    local pid=$!
+    echo "$pid" > "$pid_file"
+    
+    echo "MCP server '$server' started (PID: $pid)"
+    echo "Logs: $log_file"
+    echo "Note: Use system tools (ps, pkill, etc.) to manage server processes directly if needed"
+}
+
+
+status_server() {
+    local server="$1"
+    local pid_file="$PID_DIR/$server.pid"
+    
+    if [[ -f "$pid_file" ]]; then
+        local pid=$(cat "$pid_file")
+        echo "Server '$server' has PID file (PID: $pid)"
+        echo "Use 'ps -p $pid' or system tools to check if process is actually running"
+    else
+        echo "Server '$server' has no PID file (likely not started via this script)"
+    fi
+}
+
+status_all() {
+    check_manifest
+    echo "MCP Server Status:"
+    jq -r 'keys[]' "$MANIFEST_FILE" | while read -r server; do
+        status_server "$server"
+    done
+}
+
+# Main script logic
+case "${1:-}" in
+    start)
+        if [[ -z "${2:-}" ]]; then
+            echo "Error: Server name required for start command"
+            usage
+        fi
+        start_server "$2"
+        ;;
+    status)
+        if [[ -n "${2:-}" ]]; then
+            status_server "$2"
+        else
+            status_all
+        fi
+        ;;
+    list)
+        list_servers
+        ;;
+    *)
+        usage
+        ;;
+esac
+

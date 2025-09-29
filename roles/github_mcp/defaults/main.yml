@@ -8,3 +8,13 @@ github_mcp_branch: "main"
 
 # Build settings
 github_mcp_cleanup_source: true
+
+# MCP server binary name
+github_mcp_binary_name: "github-mcp-server"
+
+# Register this MCP server in the global registry
+github_mcp_server_definition:
+  name: "{{ github_mcp_binary_name }}"
+  type: "go"
+  args: []
+  description: "GitHub MCP Server - Access GitHub repositories, issues, and pull requests"

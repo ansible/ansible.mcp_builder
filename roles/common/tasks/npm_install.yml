@@ -1,0 +1,104 @@
+---
+# Node.js and npm installation tasks
+
+- name: Install Node.js and npm via system package manager
+  ansible.builtin.package:
+    name:
+      - nodejs
+      - npm
+    state: present
+  become: true
+
+- name: Verify Node.js installation
+  ansible.builtin.command: node --version
+  register: common_node_version_output
+  changed_when: false
+
+- name: Display Node.js version
+  ansible.builtin.debug:
+    msg: "Installed Node.js version: {{ common_node_version_output.stdout }}"
+  when: common_node_version_output is defined
+
+- name: Verify NPM installation
+  ansible.builtin.command: npm --version
+  register: common_npm_version_output
+  changed_when: false
+
+- name: Display NPM version
+  ansible.builtin.debug:
+    msg: "Installed NPM version: {{ common_npm_version_output.stdout }}"
+  when: common_npm_version_output is defined
+
+- name: Create MCP servers directory
+  ansible.builtin.file:
+    path: "{{ common_mcp_base_path }}/npm_installs"
+    state: directory
+    mode: "0755"
+  when: common_npm_mcp_servers is defined and common_npm_mcp_servers | length > 0
+
+- name: Initialize package.json for MCP servers
+  ansible.builtin.shell: |
+    set -o pipefail
+    cd {{ common_mcp_base_path }}/npm_installs
+    if [ ! -f package.json ]; then
+      npm init -y
+    fi
+  args:
+    executable: /bin/bash
+    creates: "{{ common_mcp_base_path }}/npm_installs/package.json"
+  when: common_npm_mcp_servers is defined and common_npm_mcp_servers | length > 0
+  changed_when: true
+
+- name: Install MCP servers via npm
+  ansible.builtin.shell: |
+    set -o pipefail
+    cd {{ common_mcp_base_path }}/npm_installs
+    npm install {{ item.name if item is mapping else item }}
+  args:
+    executable: /bin/bash
+  loop: "{{ common_npm_mcp_servers }}"
+  when: common_npm_mcp_servers is defined and common_npm_mcp_servers | length > 0
+  register: common_mcp_install_result
+  failed_when: false
+  changed_when: common_mcp_install_result.rc == 0
+
+- name: Create direct symlinks in global binary path for npm servers
+  ansible.builtin.shell: |
+    set -o pipefail
+    if [ -d "{{ common_mcp_base_path }}/npm_installs/node_modules/.bin" ]; then
+      cd {{ common_mcp_base_path }}/npm_installs/node_modules/.bin
+      for binary in *; do
+        if [ -f "$binary" ] && [ -x "$binary" ]; then
+          ln -sf "{{ common_mcp_base_path }}/npm_installs/node_modules/.bin/$binary" "{{ common_mcp_bin_path }}/$binary"
+        fi
+      done
+    fi
+  args:
+    executable: /bin/bash
+  become: true
+  when: common_npm_mcp_servers is defined and common_npm_mcp_servers | length > 0
+  changed_when: true
+
+- name: Register installed npm MCP servers in global registry
+  ansible.builtin.set_fact:
+    mcp_server_registry: "{{ mcp_server_registry | default([]) + [{'name': item.name if item is mapping else item, 'type': 'npm', 'path': common_mcp_bin_path + '/' + (item.name if item is mapping else item), 'args': item.args if item is mapping else []}] }}"
+  loop: "{{ common_npm_mcp_servers }}"
+  when: common_npm_mcp_servers is defined and common_npm_mcp_servers | length > 0
+
+- name: Verify MCP servers are callable
+  ansible.builtin.shell: |
+    set -o pipefail
+    {{ common_mcp_bin_path }}/{{ item.name if item is mapping else item }} --help || echo "FAILED: {{ item.name if item is mapping else item }}"
+  args:
+    executable: /bin/bash
+  loop: "{{ common_npm_mcp_servers }}"
+  when: common_npm_mcp_servers is defined and common_npm_mcp_servers | length > 0
+  register: common_mcp_verify_result
+  failed_when: false
+  changed_when: false
+
+- name: Display MCP server verification results
+  ansible.builtin.debug:
+    msg: "{{ 'MCP server working' if item.rc == 0 else 'MCP server failed' }}: {{ item.item.name if item.item is mapping else item.item }}"
+  loop: "{{ common_mcp_verify_result.results | default([]) }}"
+  when: common_npm_mcp_servers is defined and common_npm_mcp_servers | length > 0

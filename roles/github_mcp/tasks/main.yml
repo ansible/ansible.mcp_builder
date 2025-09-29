@@ -74,10 +74,10 @@
     state: link
   become: true
 
-- name: Create direct symlink in /usr/local/bin for container compatibility
+- name: Create symlink in global binary path
   ansible.builtin.file:
-    src: "{{ common_mcp_base_path }}/github/github-mcp-server"
-    dest: "/usr/local/bin/github-mcp-server"
+    src: "{{ common_mcp_base_path }}/github/{{ github_mcp_binary_name }}"
+    dest: "{{ common_mcp_bin_path }}/{{ github_mcp_binary_name }}"
     state: link
   become: true
 
@@ -86,3 +86,11 @@
     path: "{{ github_mcp_build_path }}"
     state: absent
   become: true
+
+- name: Register GitHub MCP server in global registry
+  ansible.builtin.set_fact:
+    mcp_server_registry: "{{ mcp_server_registry | default([]) + [github_mcp_server_definition | combine({'path': common_mcp_bin_path + '/' + github_mcp_binary_name})] }}"
+
+- name: Display GitHub MCP server completion message
+  ansible.builtin.debug:
+    msg: "GitHub MCP server installation completed successfully. Binary is available at {{ common_mcp_bin_path }}/{{ github_mcp_binary_name }}"

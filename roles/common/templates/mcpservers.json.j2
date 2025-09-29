@@ -1,0 +1,22 @@
+{
+{% set servers = {} %}
+{# Use the global MCP server registry #}
+{% if mcp_server_registry is defined and mcp_server_registry | length > 0 %}
+{% for server in mcp_server_registry %}
+{% set server_id = server.name.split('.')[-1] if '.' in server.name else server.name %}
+{% set server_data = {
+    "path": server.path,
+    "type": server.type,
+    "args": server.args | default([])
+} %}
+{% if server.package is defined %}
+{% set _ = server_data.update({"package": server.package}) %}
+{% endif %}
+{% if server.description is defined %}
+{% set _ = server_data.update({"description": server.description}) %}
+{% endif %}
+{% set _ = servers.update({server_id: server_data}) %}
+{% endfor %}
+{% endif %}
+{{ servers | to_nice_json(indent=4) }}
+}
