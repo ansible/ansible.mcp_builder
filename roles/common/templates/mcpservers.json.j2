@@ -1,12 +1,11 @@
 {
 {% set servers = {} %}
-{# Use the global MCP server registry #}
-{% if mcp_server_registry is defined and mcp_server_registry | length > 0 %}
-{% for server in mcp_server_registry %}
+{% if discovered_registries is defined and discovered_registries | length > 0 %} {# Combination of all MCP manifest entries #}
+{% for server in discovered_registries %}
 {% set server_id = server.name.split('.')[-1] if '.' in server.name else server.name %}
 {% set server_data = {
-    "path": server.path,
     "type": server.type,
+    "path": server.path,
     "args": server.args | default([])
 } %}
 {% if server.package is defined %}

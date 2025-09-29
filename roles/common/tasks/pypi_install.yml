@@ -81,68 +81,58 @@
     msg: "Installed uv version: {{ common_uv_version_output.stdout }}"
   when: common_uv_version_output is defined
 
+- name: Get PyPI servers from discovered registries
+  ansible.builtin.set_fact:
+    pypi_servers: "{{ discovered_registries | selectattr('type', 'equalto', 'pypi') | list }}"
+
 - name: Install MCP servers from PyPI using uv
   ansible.builtin.shell: |
     set -o pipefail
-    uv tool install {{ item.name if item is mapping else item }}
+    uv tool install {{ item.name }}
   args:
     executable: /bin/bash
-  loop: "{{ common_pypi_mcp_servers }}"
-  when: common_pypi_mcp_servers is defined and common_pypi_mcp_servers | length > 0
+  loop: "{{ pypi_servers }}"
+  when: pypi_servers | length > 0
   register: common_pypi_install_result
   failed_when: false
   changed_when: common_pypi_install_result.rc == 0
 
 - name: Display successfully installed PyPI MCP servers
   ansible.builtin.debug:
-    msg: "Successfully installed PyPI MCP server: {{ item.item.name if item.item is mapping else item.item }}"
+    msg: "Successfully installed PyPI MCP server: {{ item.item.name }}"
   loop: "{{ common_pypi_install_result.results | default([]) }}"
   when:
-    - common_pypi_mcp_servers is defined
-    - common_pypi_mcp_servers | length > 0
+    - pypi_servers | length > 0
     - item.rc == 0
 
 - name: Display failed PyPI MCP server installations
   ansible.builtin.debug:
-    msg: "Failed to install PyPI MCP server: {{ item.item.name if item.item is mapping else item.item }}"
+    msg: "Failed to install PyPI MCP server: {{ item.item.name }}"
   loop: "{{ common_pypi_install_result.results | default([]) }}"
   when:
-    - common_pypi_mcp_servers is defined
-    - common_pypi_mcp_servers | length > 0
+    - pypi_servers | length > 0
     - item.rc != 0
 
-- name: Create wrapper scripts for PyPI MCP servers in global binary path
-  ansible.builtin.copy:
-    dest: "{{ common_mcp_bin_path }}/{{ item.name.split('.')[-1] if '.' in (item.name if item is mapping else item) else (item.name if item is mapping else item) }}"
-    content: |
-      #!/bin/bash
-      exec uvx {{ item.name if item is mapping else item }} "$@"
-    mode: "0755"
-  become: true
-  loop: "{{ common_pypi_mcp_servers }}"
-  when: common_pypi_mcp_servers is defined and common_pypi_mcp_servers | length > 0
-
-- name: Register installed PyPI MCP servers in global registry
+- name: Update discovered registries with PyPI server paths
   ansible.builtin.set_fact:
-    mcp_server_registry: "{{ mcp_server_registry | default([]) + [{'name': item.name if item is mapping else item, 'type': 'pypi', 'path': common_mcp_bin_path + '/' + (item.name.split('.')[-1] if '.' in (item.name if item is mapping else item) else (item.name if item is mapping else item)), 'package': item.name if item is mapping else item, 'args': item.args if item is mapping else []}] }}"
-  loop: "{{ common_pypi_mcp_servers }}"
-  when: common_pypi_mcp_servers is defined and common_pypi_mcp_servers | length > 0
+    discovered_registries: "{{ discovered_registries | map('combine', {'path': 'uvx ' + item.name, 'package': item.name} if item.type == 'pypi' else {}) | list }}"
+  loop: "{{ discovered_registries }}"
 
 - name: Verify PyPI MCP servers are callable via uvx
   ansible.builtin.shell: |
     set -o pipefail
-    uvx {{ item.name if item is mapping else item }} --help || echo "FAILED: {{ item.name if item is mapping else item }}"
+    uvx {{ item.name }} --help || echo "FAILED: {{ item.name }}"
   args:
     executable: /bin/bash
-  loop: "{{ common_pypi_mcp_servers }}"
-  when: common_pypi_mcp_servers is defined and common_pypi_mcp_servers | length > 0
+  loop: "{{ pypi_servers }}"
+  when: pypi_servers | length > 0
   register: common_pypi_verify_result
   failed_when: false
   changed_when: false
 
 - name: Display PyPI MCP server verification results
   ansible.builtin.debug:
-    msg: "{{ 'PyPI MCP server working' if item.rc == 0 else 'PyPI MCP server failed' }}: {{ item.item.name if item.item is mapping else item.item }}"
+    msg: "{{ 'PyPI MCP server working' if item.rc == 0 else 'PyPI MCP server failed' }}: {{ item.item.name }}"
   loop: "{{ common_pypi_verify_result.results | default([]) }}"
-  when: common_pypi_mcp_servers is defined and common_pypi_mcp_servers | length > 0
+  when: pypi_servers | length > 0
 

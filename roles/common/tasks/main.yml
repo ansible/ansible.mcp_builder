@@ -2,6 +2,25 @@
 # Common role tasks - Set up generic MCP build environment
 
 # ---------------- Go setup tasks ----------------
+- name: Discover all MCP server registries from roles
+  ansible.builtin.set_fact:
+    discovered_registries: |
+      {% set registries = [] %}
+      {% for var_name, var_value in hostvars[inventory_hostname].items() %}
+        {% if var_name.endswith('_mcp_registry') and var_value is iterable and var_value is not string %}
+          {% for server in var_value %}
+            {% set _ = registries.append(server) %}
+          {% endfor %}
+        {% endif %}
+      {% endfor %}
+      {{ registries }}
+
+- name: Set install flags based on discovered registry entries
+  ansible.builtin.set_fact:
+    common_install_go: "{{ discovered_registries | selectattr('type', 'equalto', 'go') | list | length > 0 }}"
+    common_npm_install: "{{ discovered_registries | selectattr('type', 'equalto', 'npm') | list | length > 0 }}"
+    common_pypi_install: "{{ discovered_registries | selectattr('type', 'equalto', 'pypi') | list | length > 0 }}"
+
 - name: Include Go installation tasks
   ansible.builtin.include_tasks: go_install.yml
   when: common_install_go
@@ -11,10 +30,10 @@
   ansible.builtin.include_tasks: npm_install.yml
   when: common_npm_install
 
-# ---------------- uv setup tasks ----------------
-- name: Include uv installation tasks
-  ansible.builtin.include_tasks: uv_install.yml
-  when: common_uv_install
+# ---------------- PyPI setup tasks ----------------
+- name: Include PyPI installation tasks
+  ansible.builtin.include_tasks: pypi_install.yml
+  when: common_pypi_install
 
 - name: Install jq for JSON processing
   ansible.builtin.package:

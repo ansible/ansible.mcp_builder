@@ -58,39 +58,17 @@
     mode: "0755"
   become: true
 
-- name: Create GitHub MCP server wrapper script
-  ansible.builtin.copy:
-    dest: "{{ common_mcp_base_path }}/github/github-mcp-server-wrapper"
-    content: |
-      #!/bin/bash
-      exec "{{ common_mcp_base_path }}/github/github-mcp-server" "$@"
-    mode: "0755"
-  become: true
-
-- name: Create symlink in unified bin directory
-  ansible.builtin.file:
-    src: "{{ common_mcp_base_path }}/github/github-mcp-server"
-    dest: "{{ common_mcp_base_path }}/bin/github-mcp-server"
-    state: link
-  become: true
-
-- name: Create symlink in global binary path
-  ansible.builtin.file:
-    src: "{{ common_mcp_base_path }}/github/{{ github_mcp_binary_name }}"
-    dest: "{{ common_mcp_bin_path }}/{{ github_mcp_binary_name }}"
-    state: link
-  become: true
-
 - name: Clean up build directory
   ansible.builtin.file:
     path: "{{ github_mcp_build_path }}"
     state: absent
   become: true
 
-- name: Register GitHub MCP server in global registry
+- name: Update discovered registries with GitHub MCP server path
   ansible.builtin.set_fact:
-    mcp_server_registry: "{{ mcp_server_registry | default([]) + [github_mcp_server_definition | combine({'path': common_mcp_bin_path + '/' + github_mcp_binary_name})] }}"
+    discovered_registries: "{{ discovered_registries | map('combine', {'path': common_mcp_base_path + '/github/' + github_mcp_binary_name} if (item.name == github_mcp_binary_name and item.type == 'go') else {}) | list }}"
+  loop: "{{ discovered_registries }}"
 
 - name: Display GitHub MCP server completion message
   ansible.builtin.debug:
-    msg: "GitHub MCP server installation completed successfully. Binary is available at {{ common_mcp_bin_path }}/{{ github_mcp_binary_name }}"
+    msg: "GitHub MCP server installation completed successfully. Use 'mcp_manage start {{ github_mcp_binary_name }}' to run the server."
