@@ -1,0 +1,115 @@
+#!/bin/bash
+
+# MCP Server Management Script
+# Executes MCP servers defined in {{ common_mcp_base_path }}/mcpservers.json
+
+set -euo pipefail
+
+MANIFEST_FILE="{{ common_mcp_base_path }}/mcpservers.json"
+
+usage() {
+    echo "Usage: $0 {run|list|info} [server_name] [additional_args...]"
+    echo ""
+    echo "Commands:"
+    echo "  run <server> [args]  - Execute MCP server directly with optional additional arguments"
+    echo "  list                 - List all available MCP servers"
+    echo "  info <server>        - Show detailed information about a server"
+    echo ""
+    echo "Examples:"
+    echo "  $0 list"
+    echo "  $0 info github-mcp-server"
+    echo "  $0 run github-mcp-server"
+    echo "  $0 run github-mcp-server --token \$GITHUB_TOKEN"
+    exit 1
+}
+
+check_manifest() {
+    if [[ ! -f "$MANIFEST_FILE" ]]; then
+        echo "Error: Manifest file not found at $MANIFEST_FILE"
+        exit 1
+    fi
+}
+
+list_servers() {
+    check_manifest
+    echo "Available MCP servers:"
+    jq -r 'keys[]' "$MANIFEST_FILE" | while read -r server; do
+        type=$(jq -r ".[\"$server\"].type" "$MANIFEST_FILE")
+        path=$(jq -r ".[\"$server\"].path" "$MANIFEST_FILE")
+        echo "  - $server (type: $type, path: $path)"
+    done
+}
+
+show_server_info() {
+    local server="$1"
+    check_manifest
+
+    if ! jq -e ".[\"$server\"]" "$MANIFEST_FILE" >/dev/null 2>&1; then
+        echo "Error: Server '$server' not found in manifest"
+        echo "Available servers:"
+        jq -r 'keys[]' "$MANIFEST_FILE"
+        exit 1
+    fi
+
+    echo "Server: $server"
+    echo "Type: $(jq -r ".[\"$server\"].type" "$MANIFEST_FILE")"
+    echo "Path: $(jq -r ".[\"$server\"].path" "$MANIFEST_FILE")"
+    echo "Default args: $(jq -r ".[\"$server\"].args | join(\" \")" "$MANIFEST_FILE")"
+
+    if jq -e ".[\"$server\"].package" "$MANIFEST_FILE" >/dev/null 2>&1; then
+        echo "Package: $(jq -r ".[\"$server\"].package" "$MANIFEST_FILE")"
+    fi
+
+    if jq -e ".[\"$server\"].description" "$MANIFEST_FILE" >/dev/null 2>&1; then
+        echo "Description: $(jq -r ".[\"$server\"].description" "$MANIFEST_FILE")"
+    fi
+}
+
+run_server() {
+    local server="$1"
+    shift # Remove server name, leave additional args
+
+    check_manifest
+
+    if ! jq -e ".[\"$server\"]" "$MANIFEST_FILE" >/dev/null 2>&1; then
+        echo "Error: Server '$server' not found in manifest"
+        echo "Available servers:"
+        jq -r 'keys[]' "$MANIFEST_FILE"
+        exit 1
+    fi
+
+    local path=$(jq -r ".[\"$server\"].path" "$MANIFEST_FILE")
+    local default_args=$(jq -r ".[\"$server\"].args | join(\" \")" "$MANIFEST_FILE")
+
+    echo "Executing MCP server: $server"
+    echo "Command: $path $default_args $*"
+    echo "Press Ctrl+C to stop"
+    echo "----------------------------------------"
+
+    # Execute directly - no background, no PID files, no logs
+    exec $path $default_args "$@"
+}
+
+# Main script logic
+case "${1:-}" in
+    run)
+        if [[ -z "${2:-}" ]]; then
+            echo "Error: Server name required for run command"
+            usage
+        fi
+        run_server "${@:2}"  # Pass server name and any additional args
+        ;;
+    list)
+        list_servers
+        ;;
+    info)
+        if [[ -z "${2:-}" ]]; then
+            echo "Error: Server name required for info command"
+            usage
+        fi
+        show_server_info "$2"
+        ;;
+    *)
+        usage
+        ;;
+esac

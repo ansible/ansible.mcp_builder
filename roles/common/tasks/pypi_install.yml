@@ -1,0 +1,132 @@
+---
+# uv installation tasks
+
+- name: Download uv installer
+  ansible.builtin.get_url:
+    url: "https://astral.sh/uv/install.sh"
+    dest: "/tmp/uv-install.sh"
+    mode: "0755"
+
+- name: Install uv
+  ansible.builtin.shell: |
+    set -o pipefail
+    /tmp/uv-install.sh
+  args:
+    executable: /bin/bash
+  changed_when: true
+
+- name: Find uv installation path
+  ansible.builtin.shell: |
+    set -o pipefail
+    # Try multiple methods to find uv
+    if command -v uv >/dev/null 2>&1; then
+      command -v uv
+    elif [ -f "$HOME/.cargo/bin/uv" ]; then
+      echo "$HOME/.cargo/bin/uv"
+    elif [ -f "$HOME/.local/bin/uv" ]; then
+      echo "$HOME/.local/bin/uv"
+    else
+      # Search more broadly
+      find $HOME -name "uv" -type f -executable 2>/dev/null | head -1
+    fi
+  args:
+    executable: /bin/bash
+  register: common_uv_path
+  changed_when: false
+
+- name: Create symlink for uv in /usr/local/bin
+  ansible.builtin.file:
+    src: "{{ common_uv_path.stdout }}"
+    dest: /usr/local/bin/uv
+    state: link
+    force: true
+  become: true
+  when: common_uv_path.stdout != ""
+
+- name: Find uvx installation path
+  ansible.builtin.shell: |
+    set -o pipefail
+    # Try multiple methods to find uvx
+    if command -v uvx >/dev/null 2>&1; then
+      command -v uvx
+    elif [ -f "$HOME/.cargo/bin/uvx" ]; then
+      echo "$HOME/.cargo/bin/uvx"
+    elif [ -f "$HOME/.local/bin/uvx" ]; then
+      echo "$HOME/.local/bin/uvx"
+    else
+      # Search more broadly
+      find $HOME -name "uvx" -type f -executable 2>/dev/null | head -1
+    fi
+  args:
+    executable: /bin/bash
+  register: common_uvx_path
+  changed_when: false
+
+- name: Create symlink for uvx in /usr/local/bin
+  ansible.builtin.file:
+    src: "{{ common_uvx_path.stdout }}"
+    dest: /usr/local/bin/uvx
+    state: link
+    force: true
+  become: true
+  when: common_uvx_path.stdout != ""
+
+- name: Verify uv installation
+  ansible.builtin.command: uv --version
+  register: common_uv_version_output
+  changed_when: false
+
+- name: Display uv version
+  ansible.builtin.debug:
+    msg: "Installed uv version: {{ common_uv_version_output.stdout }}"
+  when: common_uv_version_output is defined
+
+- name: Get PyPI servers from discovered registries
+  ansible.builtin.set_fact:
+    common_pypi_servers: "{{ common_discovered_registries | selectattr('type', 'equalto', 'pypi') | list }}"
+
+- name: Install MCP servers from PyPI using uv
+  ansible.builtin.shell: |
+    set -o pipefail
+    uv tool install {{ item.name }}
+  args:
+    executable: /bin/bash
+  loop: "{{ common_pypi_servers }}"
+  when: common_pypi_servers | length > 0
+  register: common_pypi_install_result
+  failed_when: false
+  changed_when: common_pypi_install_result.rc == 0
+
+- name: Display successfully installed PyPI MCP servers
+  ansible.builtin.debug:
+    msg: "Successfully installed PyPI MCP server: {{ item.item.name }}"
+  loop: "{{ common_pypi_install_result.results | default([]) }}"
+  when:
+    - common_pypi_servers | length > 0
+    - item.rc == 0
+
+- name: Display failed PyPI MCP server installations
+  ansible.builtin.debug:
+    msg: "Failed to install PyPI MCP server: {{ item.item.name }}"
+  loop: "{{ common_pypi_install_result.results | default([]) }}"
+  when:
+    - common_pypi_servers | length > 0
+    - item.rc != 0
+
+- name: Verify PyPI MCP servers are callable via uvx
+  ansible.builtin.shell: |
+    set -o pipefail
+    uvx {{ item.name }} --help || echo "FAILED: {{ item.name }}"
+  args:
+    executable: /bin/bash
+  loop: "{{ common_pypi_servers }}"
+  when: common_pypi_servers | length > 0
+  register: common_pypi_verify_result
+  failed_when: false
+  changed_when: false
+
+- name: Display PyPI MCP server verification results
+  ansible.builtin.debug:
+    msg: "{{ 'PyPI MCP server working' if item.rc == 0 else 'PyPI MCP server failed' }}: {{ item.item.name }}"
+  loop: "{{ common_pypi_verify_result.results | default([]) }}"
+  when: common_pypi_servers | length > 0

@@ -1,0 +1,53 @@
+---
+# Centralized path assignment for all MCP server types
+# This runs after all installations are complete
+
+- name: Validate MCP server registry entries
+  ansible.builtin.fail:
+    msg: |
+      Invalid MCP server registry entry found: {{ item }}
+
+      Registry entries must be dictionaries with 'name' and 'type' attributes.
+      Valid types are: npm, pypi, go
+
+      Example:
+        - name: "my-server"
+          type: "npm"
+          args: []
+  loop: "{{ common_discovered_registries }}"
+  when: not (item is mapping and item.name is defined and item.type is defined)
+
+- name: Validate MCP server types
+  ansible.builtin.fail:
+    msg: |
+      Unknown MCP server type '{{ item.type }}' for server '{{ item.name }}'.
+
+      Supported types are: npm, pypi, go
+  loop: "{{ common_discovered_registries }}"
+  when: item.type not in ['npm', 'pypi', 'go']
+
+- name: Build updated registry with paths assigned
+  ansible.builtin.set_fact:
+    common_updated_registries: []
+
+- name: Add servers with paths to updated registry
+  ansible.builtin.set_fact:
+    common_updated_registries: "{{ common_updated_registries + [server_with_path] }}"
+  vars:
+    server_with_path: >-
+      {%- if item.path is defined -%}
+        {{ item }}
+      {%- elif item.type == 'npm' -%}
+        {{ item | combine({'path': 'npx --prefix ' + common_mcp_base_path + '/npm_installs ' + item.name}) }}
+      {%- elif item.type == 'pypi' -%}
+        {{ item | combine({'path': 'uvx ' + item.name, 'package': item.name}) }}
+      {%- elif item.type == 'go' -%}
+        {{ item | combine({'path': common_mcp_base_path + '/bin/' + item.name}) }}
+      {%- else -%}
+        {{ item }}
+      {%- endif -%}
+  loop: "{{ common_discovered_registries }}"
+
+- name: Replace common_discovered_registries with updated version
+  ansible.builtin.set_fact:
+    common_discovered_registries: "{{ common_updated_registries }}"

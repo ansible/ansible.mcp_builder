@@ -1,0 +1,32 @@
+---
+# Go installation tasks
+
+- name: Create Go installation directory
+  ansible.builtin.file:
+    path: /usr/local
+    state: directory
+    mode: "0755"
+  become: true
+
+- name: Download and extract Go
+  ansible.builtin.unarchive:
+    src: "https://golang.org/dl/go{{ common_golang_version }}.linux-amd64.tar.gz"
+    dest: /usr/local
+    remote_src: true
+    owner: root
+    group: root
+    mode: "0755"
+    creates: /usr/local/go/bin/go
+  become: true
+
+- name: Set Go environment variables
+  ansible.builtin.lineinfile:
+    path: /etc/environment
+    line: "{{ item }}"
+    create: true
+    mode: "0644"
+  loop:
+    - 'PATH="/usr/local/go/bin:$PATH"'
+    - 'GOPATH="{{ common_go_path }}"'
+    - 'GOCACHE="{{ common_go_cache }}"'
+  become: true

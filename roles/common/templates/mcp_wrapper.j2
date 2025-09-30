@@ -1,0 +1,7 @@
+#!/bin/bash
+# MCP Server wrapper for {{ server_name }} ({{ server_type }})
+{% if server_type == 'npm' %}
+exec npx --prefix {{ common_mcp_base_path }}/npm_installs {{ server_name }} "$@"
+{% elif server_type == 'pypi' %}
+exec uvx {{ server_name }} "$@"
+{% endif %}
