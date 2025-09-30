@@ -1,0 +1,1 @@
+roles/common/templates/mcp_manage.j2 shebang
