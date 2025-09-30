@@ -66,15 +66,10 @@
   failed_when: false
   changed_when: common_mcp_install_result.rc == 0
 
-- name: Update discovered registries with npm server paths
-  ansible.builtin.set_fact:
-    discovered_registries: "{{ discovered_registries | map('combine', {'path': common_mcp_base_path + '/npm_installs/node_modules/.bin/' + item.name} if item.type == 'npm' else {}) | list }}"
-  loop: "{{ discovered_registries }}"
-
 - name: Verify MCP servers are callable
   ansible.builtin.shell: |
     set -o pipefail
-    {{ common_mcp_base_path }}/npm_installs/node_modules/.bin/{{ item.name }} --help || echo "FAILED: {{ item.name }}"
+    npx --prefix {{ common_mcp_base_path }}/npm_installs {{ item.name }} --help || echo "FAILED: {{ item.name }}"
   args:
     executable: /bin/bash
   loop: "{{ npm_servers }}"

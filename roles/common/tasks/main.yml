@@ -4,15 +4,20 @@
 # ---------------- Go setup tasks ----------------
 - name: Discover all MCP server registries from roles
   ansible.builtin.set_fact:
-    discovered_registries: |
-      {% set registries = [] %}
-      {% for var_name, var_value in hostvars[inventory_hostname].items() %}
-        {% if var_name.endswith('_mcp_registry') and var_value is iterable and var_value is not string %}
-          {% for server in var_value %}
-            {% set _ = registries.append(server) %}
-          {% endfor %}
-        {% endif %}
-      {% endfor %}
+    discovered_registries: >-
+      {%- set registries = [] -%}
+      {%- for var_name in vars.keys() -%}
+        {%- if var_name.endswith('_mcp_registry') -%}
+          {%- set var_value = vars[var_name] -%}
+          {%- if var_value is iterable and var_value is not string -%}
+            {%- for server in var_value -%}
+              {%- if server is mapping and server.name is defined and server.type is defined -%}
+                {%- set _ = registries.append(server) -%}
+              {%- endif -%}
+            {%- endfor -%}
+          {%- endif -%}
+        {%- endif -%}
+      {%- endfor -%}
       {{ registries }}
 
 - name: Set install flags based on discovered registry entries
@@ -48,12 +53,6 @@
     mode: "0755"
   become: true
 
-- name: Generate MCP servers manifest
-  ansible.builtin.template:
-    src: mcpservers.json.j2
-    dest: "{{ common_mcp_base_path }}/mcpservers.json"
-    mode: "0644"
-
 - name: Create MCP management script
   ansible.builtin.template:
     src: mcp_manage.j2
@@ -68,6 +67,12 @@
     force: true
   become: true
 
+- name: Assign paths to all MCP servers (centralized)
+  ansible.builtin.include_tasks: assign_registry_paths.yml
+
+- name: Generate MCP servers manifest
+  ansible.builtin.include_tasks: generate_manifest.yml
+
 - name: Display MCP servers usage info
   ansible.builtin.debug:
-    msg: "MCP servers are available globally via /usr/local/bin/. Manifest: {{ common_mcp_base_path }}/mcpservers.json. Use 'mcp_manage start <server>' to manage servers."
+    msg: "MCP servers are available globally. Use 'mcp_manage list' to see available servers and 'mcp_manage run <server>' to execute them. Manifest: {{ common_mcp_base_path }}/mcpservers.json"

@@ -6,7 +6,7 @@
     - name: Register vars
       ansible.builtin.set_fact:
         "ansible_connection": "ansible.mcp.mcp"
-        "ansible_mcp_server_path": "/opt/mcp/github/github-mcp-server"
+        "ansible_mcp_server_path": "/opt/mcp/bin/github-mcp-server"
         "ansible_mcp_server_args": ["stdio"]
         "ansible_mcp_server_env":
           { "GITHUB_PERSONAL_ACCESS_TOKEN": "<UPDATE-ME>" }

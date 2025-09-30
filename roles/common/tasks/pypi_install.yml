@@ -113,11 +113,6 @@
     - pypi_servers | length > 0
     - item.rc != 0
 
-- name: Update discovered registries with PyPI server paths
-  ansible.builtin.set_fact:
-    discovered_registries: "{{ discovered_registries | map('combine', {'path': 'uvx ' + item.name, 'package': item.name} if item.type == 'pypi' else {}) | list }}"
-  loop: "{{ discovered_registries }}"
-
 - name: Verify PyPI MCP servers are callable via uvx
   ansible.builtin.shell: |
     set -o pipefail
@@ -135,4 +130,3 @@
     msg: "{{ 'PyPI MCP server working' if item.rc == 0 else 'PyPI MCP server failed' }}: {{ item.item.name }}"
   loop: "{{ common_pypi_verify_result.results | default([]) }}"
   when: pypi_servers | length > 0
-

@@ -17,5 +17,5 @@ github_mcp_binary_name: "github-mcp-server"
 github_mcp_registry:
   - name: "{{ github_mcp_binary_name }}"
     type: "go"
-    args: []
+    args: ["stdio"]
     description: "GitHub MCP Server - Access GitHub repositories, issues, and pull requests"

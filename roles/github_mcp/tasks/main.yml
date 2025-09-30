@@ -4,13 +4,6 @@
   ansible.builtin.set_fact:
     github_mcp_build_path: "{{ common_mcp_base_path }}/github/build"
 
-- name: Create GitHub MCP directory
-  ansible.builtin.file:
-    path: "{{ common_mcp_base_path }}/github"
-    state: directory
-    mode: "0755"
-  become: true
-
 - name: Create GitHub MCP build directory
   ansible.builtin.file:
     path: "{{ github_mcp_build_path }}"
@@ -41,9 +34,9 @@
 
 - name: Build GitHub MCP Server binary
   ansible.builtin.command:
-    cmd: go build -ldflags="-s -w" -o "{{ common_mcp_base_path }}/github/github-mcp-server" ./cmd/github-mcp-server/
+    cmd: go build -ldflags="-s -w" -o "{{ common_mcp_base_path }}/bin/{{ github_mcp_binary_name }}" ./cmd/github-mcp-server/
     chdir: "{{ github_mcp_build_path }}"
-    creates: "{{ common_mcp_base_path }}/github/github-mcp-server"
+    creates: "{{ common_mcp_base_path }}/bin/{{ github_mcp_binary_name }}"
   become: true
   environment:
     PATH: "/usr/local/go/bin:/usr/local/bin:/usr/bin:/bin"
@@ -54,7 +47,7 @@
 
 - name: Make GitHub MCP Server binary executable
   ansible.builtin.file:
-    path: "{{ common_mcp_base_path }}/github/github-mcp-server"
+    path: "{{ common_mcp_base_path }}/bin/{{ github_mcp_binary_name }}"
     mode: "0755"
   become: true
 
@@ -64,11 +57,6 @@
     state: absent
   become: true
 
-- name: Update discovered registries with GitHub MCP server path
-  ansible.builtin.set_fact:
-    discovered_registries: "{{ discovered_registries | map('combine', {'path': common_mcp_base_path + '/github/' + github_mcp_binary_name} if (item.name == github_mcp_binary_name and item.type == 'go') else {}) | list }}"
-  loop: "{{ discovered_registries }}"
-
 - name: Display GitHub MCP server completion message
   ansible.builtin.debug:
-    msg: "GitHub MCP server installation completed successfully. Use 'mcp_manage start {{ github_mcp_binary_name }}' to run the server."
+    msg: "GitHub MCP server installation completed successfully. Use 'mcp_manage run {{ github_mcp_binary_name }}' to run the server."

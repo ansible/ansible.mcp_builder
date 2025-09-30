@@ -1,0 +1,8 @@
+---
+# Generate MCP servers manifest after all path updates are complete
+
+- name: Generate MCP servers manifest
+  ansible.builtin.template:
+    src: mcpservers.json.j2
+    dest: "{{ common_mcp_base_path }}/mcpservers.json"
+    mode: "0644"

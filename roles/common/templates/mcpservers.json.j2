@@ -1,6 +1,5 @@
-{
 {% set servers = {} %}
-{% if discovered_registries is defined and discovered_registries | length > 0 %} {# Combination of all MCP manifest entries #}
+{% if discovered_registries is defined and discovered_registries | length > 0 %}
 {% for server in discovered_registries %}
 {% set server_id = server.name.split('.')[-1] if '.' in server.name else server.name %}
 {% set server_data = {
@@ -18,4 +17,3 @@
 {% endfor %}
 {% endif %}
 {{ servers | to_nice_json(indent=4) }}
-}
