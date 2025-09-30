@@ -83,7 +83,7 @@
 
 - name: Get PyPI servers from discovered registries
   ansible.builtin.set_fact:
-    pypi_servers: "{{ discovered_registries | selectattr('type', 'equalto', 'pypi') | list }}"
+    common_pypi_servers: "{{ discovered_registries | selectattr('type', 'equalto', 'pypi') | list }}"
 
 - name: Install MCP servers from PyPI using uv
   ansible.builtin.shell: |
@@ -91,8 +91,8 @@
     uv tool install {{ item.name }}
   args:
     executable: /bin/bash
-  loop: "{{ pypi_servers }}"
-  when: pypi_servers | length > 0
+  loop: "{{ common_pypi_servers }}"
+  when: common_pypi_servers | length > 0
   register: common_pypi_install_result
   failed_when: false
   changed_when: common_pypi_install_result.rc == 0
@@ -102,7 +102,7 @@
     msg: "Successfully installed PyPI MCP server: {{ item.item.name }}"
   loop: "{{ common_pypi_install_result.results | default([]) }}"
   when:
-    - pypi_servers | length > 0
+    - common_pypi_servers | length > 0
     - item.rc == 0
 
 - name: Display failed PyPI MCP server installations
@@ -110,7 +110,7 @@
     msg: "Failed to install PyPI MCP server: {{ item.item.name }}"
   loop: "{{ common_pypi_install_result.results | default([]) }}"
   when:
-    - pypi_servers | length > 0
+    - common_pypi_servers | length > 0
     - item.rc != 0
 
 - name: Verify PyPI MCP servers are callable via uvx
@@ -119,8 +119,8 @@
     uvx {{ item.name }} --help || echo "FAILED: {{ item.name }}"
   args:
     executable: /bin/bash
-  loop: "{{ pypi_servers }}"
-  when: pypi_servers | length > 0
+  loop: "{{ common_pypi_servers }}"
+  when: common_pypi_servers | length > 0
   register: common_pypi_verify_result
   failed_when: false
   changed_when: false
@@ -129,4 +129,4 @@
   ansible.builtin.debug:
     msg: "{{ 'PyPI MCP server working' if item.rc == 0 else 'PyPI MCP server failed' }}: {{ item.item.name }}"
   loop: "{{ common_pypi_verify_result.results | default([]) }}"
-  when: pypi_servers | length > 0
+  when: common_pypi_servers | length > 0

@@ -4,7 +4,7 @@
 # ---------------- Go setup tasks ----------------
 - name: Discover all MCP server registries from roles
   ansible.builtin.set_fact:
-    discovered_registries: >-
+    common_discovered_registries: >-
       {%- set registries = [] -%}
       {%- for var_name in vars.keys() -%}
         {%- if var_name.endswith('_mcp_registry') -%}
@@ -22,9 +22,9 @@
 
 - name: Set install flags based on discovered registry entries
   ansible.builtin.set_fact:
-    common_install_go: "{{ discovered_registries | selectattr('type', 'equalto', 'go') | list | length > 0 }}"
-    common_npm_install: "{{ discovered_registries | selectattr('type', 'equalto', 'npm') | list | length > 0 }}"
-    common_pypi_install: "{{ discovered_registries | selectattr('type', 'equalto', 'pypi') | list | length > 0 }}"
+    common_install_go: "{{ common_discovered_registries | selectattr('type', 'equalto', 'go') | list | length > 0 }}"
+    common_npm_install: "{{ common_discovered_registries | selectattr('type', 'equalto', 'npm') | list | length > 0 }}"
+    common_pypi_install: "{{ common_discovered_registries | selectattr('type', 'equalto', 'pypi') | list | length > 0 }}"
 
 - name: Include Go installation tasks
   ansible.builtin.include_tasks: go_install.yml
@@ -75,4 +75,4 @@
 
 - name: Display MCP servers usage info
   ansible.builtin.debug:
-    msg: "MCP servers are available globally. Use 'mcp_manage list' to see available servers and 'mcp_manage run <server>' to execute them. Manifest: {{ common_mcp_base_path }}/mcpservers.json"
+    msg: "Use 'mcp_manage list' to list MCP servers and 'mcp_manage run <server>' to execute them. Manifest: {{ common_mcp_base_path }}/mcpservers.json"

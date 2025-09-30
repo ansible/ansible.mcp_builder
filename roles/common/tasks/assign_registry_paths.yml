@@ -6,33 +6,33 @@
   ansible.builtin.fail:
     msg: |
       Invalid MCP server registry entry found: {{ item }}
-      
+
       Registry entries must be dictionaries with 'name' and 'type' attributes.
       Valid types are: npm, pypi, go
-      
+
       Example:
         - name: "my-server"
           type: "npm"
           args: []
-  loop: "{{ discovered_registries }}"
+  loop: "{{ common_discovered_registries }}"
   when: not (item is mapping and item.name is defined and item.type is defined)
 
 - name: Validate MCP server types
   ansible.builtin.fail:
     msg: |
       Unknown MCP server type '{{ item.type }}' for server '{{ item.name }}'.
-      
+
       Supported types are: npm, pypi, go
-  loop: "{{ discovered_registries }}"
+  loop: "{{ common_discovered_registries }}"
   when: item.type not in ['npm', 'pypi', 'go']
 
 - name: Build updated registry with paths assigned
   ansible.builtin.set_fact:
-    updated_registries: []
+    common_updated_registries: []
 
 - name: Add servers with paths to updated registry
   ansible.builtin.set_fact:
-    updated_registries: "{{ updated_registries + [server_with_path] }}"
+    common_updated_registries: "{{ common_updated_registries + [server_with_path] }}"
   vars:
     server_with_path: >-
       {%- if item.path is defined -%}
@@ -46,8 +46,8 @@
       {%- else -%}
         {{ item }}
       {%- endif -%}
-  loop: "{{ discovered_registries }}"
+  loop: "{{ common_discovered_registries }}"
 
 - name: Replace discovered_registries with updated version
   ansible.builtin.set_fact:
-    discovered_registries: "{{ updated_registries }}"
+    common_discovered_registries: "{{ common_updated_registries }}"

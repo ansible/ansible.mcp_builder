@@ -31,14 +31,14 @@
 
 - name: Get npm servers from discovered registries
   ansible.builtin.set_fact:
-    npm_servers: "{{ discovered_registries | selectattr('type', 'equalto', 'npm') | list }}"
+    common_npm_servers: "{{ common_discovered_registries | selectattr('type', 'equalto', 'npm') | list }}"
 
 - name: Create MCP servers directory
   ansible.builtin.file:
     path: "{{ common_mcp_base_path }}/npm_installs"
     state: directory
     mode: "0755"
-  when: npm_servers | length > 0
+  when: common_npm_servers | length > 0
 
 - name: Initialize package.json for MCP servers
   ansible.builtin.shell: |
@@ -50,7 +50,7 @@
   args:
     executable: /bin/bash
     creates: "{{ common_mcp_base_path }}/npm_installs/package.json"
-  when: npm_servers | length > 0
+  when: common_npm_servers | length > 0
   changed_when: true
 
 - name: Install MCP servers via npm
@@ -60,8 +60,8 @@
     npm install {{ item.name }}
   args:
     executable: /bin/bash
-  loop: "{{ npm_servers }}"
-  when: npm_servers | length > 0
+  loop: "{{ common_npm_servers }}"
+  when: common_npm_servers | length > 0
   register: common_mcp_install_result
   failed_when: false
   changed_when: common_mcp_install_result.rc == 0
@@ -72,8 +72,8 @@
     npx --prefix {{ common_mcp_base_path }}/npm_installs {{ item.name }} --help || echo "FAILED: {{ item.name }}"
   args:
     executable: /bin/bash
-  loop: "{{ npm_servers }}"
-  when: npm_servers | length > 0
+  loop: "{{ common_npm_servers }}"
+  when: common_npm_servers | length > 0
   register: common_mcp_verify_result
   failed_when: false
   changed_when: false
@@ -82,4 +82,4 @@
   ansible.builtin.debug:
     msg: "{{ 'MCP server working' if item.rc == 0 else 'MCP server failed' }}: {{ item.item.name }}"
   loop: "{{ common_mcp_verify_result.results | default([]) }}"
-  when: npm_servers | length > 0
+  when: common_npm_servers | length > 0
