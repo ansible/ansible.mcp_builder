@@ -2,11 +2,11 @@
 
 This repository contains the `ansible.mcp_builder` Ansible Collection.
 
-An Ansible collection for building and installing MCP (Model Context Protocol) servers from source.
+An Ansible collection for building and installing MCP (Model Context Protocol) servers from various sources including npm, PyPI, and source builds.
 
 ## About
 
-The Ansible MCP Builder collection provides roles to build and install MCP servers into environments. It is designed for use with Ansible Execution Environments (EEs).
+The Ansible MCP Builder collection provides roles to build and install MCP servers into environments. It features a unified registry system where different roles can contribute their MCP servers, and automatically generates a manifest file and management script for easy server execution. The collection is designed for use with Ansible Execution Environments (EEs).
 
 ## Included Content
 
@@ -16,6 +16,89 @@ Name | Description
 --- | ---
 [ansible.mcp_builder.common](roles/common/README.md) | Installs dependencies and sets up generic environment for MCP servers.
 [ansible.mcp_builder.github_mcp](roles/github_mcp/README.md) | Install the [Github MCP Server](https://github.com/github/github-mcp-server).
+
+## MCP Server Management
+
+After installation, the collection provides:
+
+- **MCP Server Manifest** (`/opt/mcp/mcpservers.json`) - JSON file describing all installed MCP servers
+- **Management Script** (`mcp_manage`) - Command-line tool for running MCP servers
+
+### Using the MCP Management Script
+
+List all available MCP servers:
+```bash
+mcp_manage list
+```
+
+Get information about a specific server:
+```bash
+mcp_manage info github-mcp-server
+```
+
+Run an MCP server:
+```bash
+mcp_manage run github-mcp-server
+mcp_manage run mcp-hello-world
+mcp_manage run iam-mcp-server
+```
+
+Run with additional arguments:
+```bash
+mcp_manage run github-mcp-server --debug --token $GITHUB_TOKEN
+```
+
+## MCP Server Registry System
+
+The collection uses a unified registry system where roles can contribute MCP server definitions. Each role defines a `{role_name}_mcp_registry` variable containing server definitions.
+
+### Server Types
+
+| Type | Description | Path Convention |
+|------|-------------|----------------|
+| `npm` | npm packages | `npx --prefix /opt/mcp/npm_installs {name}` |
+| `pypi` | Python packages via uvx | `uvx {name}` |
+| `go` | Source builds (any compiled binary) | `/opt/mcp/bin/{name}` |
+
+### Example Registry Definition
+
+```yaml
+# In roles/{role_name}/defaults/main.yml
+my_role_mcp_registry:
+  - name: "my-awesome-server"
+    type: "go"
+    args: ["stdio"]
+    description: "My custom MCP server"
+  - name: "my-npm-server"  
+    type: "npm"
+    args: ["--config", "production"]
+```
+
+## MCP Server Manifest Format
+
+The generated `/opt/mcp/mcpservers.json` file contains all server definitions:
+
+```json
+{
+    "mcp-hello-world": {
+        "type": "npm",
+        "path": "npx --prefix /opt/mcp/npm_installs mcp-hello-world",
+        "args": []
+    },
+    "aws-iam-mcp-server": {
+        "type": "pypi",
+        "path": "uvx awslabs.iam-mcp-server",
+        "args": [],
+        "package": "awslabs.iam-mcp-server"
+    },
+    "github-mcp-server": {
+        "type": "go",
+        "path": "/opt/mcp/bin/github-mcp-server",
+        "args": ["stdio"],
+        "description": "GitHub MCP Server - Access GitHub repositories, issues, and pull requests"
+    }
+}
+```
 
 ## Install MCP in EE via the ansible.mcp_builder roles
 
