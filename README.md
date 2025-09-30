@@ -137,6 +137,10 @@ Run with:
 ```
 ansible-navigator run test-playbook.yml --eei localhost/my-mcp-ee:latest --ce podman --pp never -m stdout
 ```
+Extra params may be required:
+```
+ansible-navigator run test-playbook.yml --eei localhost/my-mcp-ee:latest --ce podman --pp never -m stdout -i localhost -c local
+```
 
 The Github issue will be created with your specified details.
 
