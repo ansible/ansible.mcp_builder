@@ -48,6 +48,6 @@
       {%- endif -%}
   loop: "{{ common_discovered_registries }}"
 
-- name: Replace discovered_registries with updated version
+- name: Replace common_discovered_registries with updated version
   ansible.builtin.set_fact:
     common_discovered_registries: "{{ common_updated_registries }}"

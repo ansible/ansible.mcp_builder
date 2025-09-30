@@ -83,7 +83,7 @@
 
 - name: Get PyPI servers from discovered registries
   ansible.builtin.set_fact:
-    common_pypi_servers: "{{ discovered_registries | selectattr('type', 'equalto', 'pypi') | list }}"
+    common_pypi_servers: "{{ common_discovered_registries | selectattr('type', 'equalto', 'pypi') | list }}"
 
 - name: Install MCP servers from PyPI using uv
   ansible.builtin.shell: |

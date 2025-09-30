@@ -1,1 +1,2 @@
 roles/common/templates/mcp_manage.j2 shebang
+roles/common/templates/mcp_wrapper.j2 shebang

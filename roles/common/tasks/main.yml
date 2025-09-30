@@ -73,6 +73,40 @@
 - name: Generate MCP servers manifest
   ansible.builtin.include_tasks: generate_manifest.yml
 
+- name: Create symlinks for Go binaries in /usr/local/bin
+  ansible.builtin.file:
+    src: "{{ item.path }}"
+    dest: "/usr/local/bin/{{ item.name }}"
+    state: link
+    force: true
+  become: true
+  loop: "{{ common_discovered_registries | selectattr('type', 'equalto', 'go') | list }}"
+  when: common_discovered_registries | selectattr('type', 'equalto', 'go') | list | length > 0
+
+- name: Create wrapper scripts for npm servers in /usr/local/bin
+  ansible.builtin.template:
+    src: mcp_wrapper.j2
+    dest: "/usr/local/bin/{{ item.name }}"
+    mode: "0755"
+  become: true
+  vars:
+    server_name: "{{ item.name }}"
+    server_type: "{{ item.type }}"
+  loop: "{{ common_discovered_registries | selectattr('type', 'equalto', 'npm') | list }}"
+  when: common_discovered_registries | selectattr('type', 'equalto', 'npm') | list | length > 0
+
+- name: Create wrapper scripts for pypi servers in /usr/local/bin
+  ansible.builtin.template:
+    src: mcp_wrapper.j2
+    dest: "/usr/local/bin/{{ item.name }}"
+    mode: "0755"
+  become: true
+  vars:
+    server_name: "{{ item.name }}"
+    server_type: "{{ item.type }}"
+  loop: "{{ common_discovered_registries | selectattr('type', 'equalto', 'pypi') | list }}"
+  when: common_discovered_registries | selectattr('type', 'equalto', 'pypi') | list | length > 0
+
 - name: Display MCP servers usage info
   ansible.builtin.debug:
-    msg: "Use 'mcp_manage list' to list MCP servers and 'mcp_manage run <server>' to execute them. Manifest: {{ common_mcp_base_path }}/mcpservers.json"
+    msg: "MCP servers are available globally by name (e.g., 'github-mcp-server', 'mcp-hello-world') and via 'mcp_manage run <server>'."
