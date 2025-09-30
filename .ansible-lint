@@ -1,0 +1,7 @@
+---
+# .ansible-lint
+
+profile: production
+
+exclude_paths:
+  - examples/  # Temporary skip while ansible.mcp is not usable in tests
