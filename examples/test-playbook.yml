@@ -8,7 +8,8 @@
         "ansible_connection": "ansible.mcp.mcp"
         "ansible_mcp_server_path": "/opt/mcp/bin/github-mcp-server"
         "ansible_mcp_server_args": ["stdio"]
-        "ansible_mcp_server_env": { "GITHUB_PERSONAL_ACCESS_TOKEN": "<UPDATE-ME>" }
+        "ansible_mcp_server_env":
+          { "GITHUB_PERSONAL_ACCESS_TOKEN": "<UPDATE-ME>" }
     # Discover available tools
     - name: List all available tools
       ansible.mcp.mcp_get_tools:

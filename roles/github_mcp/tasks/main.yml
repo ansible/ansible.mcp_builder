@@ -1,8 +1,5 @@
 ---
 # GitHub MCP role tasks
-- name: Set GitHub MCP build path
-  ansible.builtin.set_fact:
-    github_mcp_build_path: "{{ common_mcp_base_path }}/github/build"
 
 - name: Create GitHub MCP build directory
   ansible.builtin.file:
@@ -47,9 +44,11 @@
 
 - name: Make GitHub MCP Server binary executable
   ansible.builtin.file:
-    path: "{{ common_mcp_base_path }}/bin/{{ github_mcp_binary_name }}"
+    path: "{{ binary_full_path }}"
     mode: "0755"
   become: true
+  vars:
+    binary_full_path: "{{ common_mcp_base_path }}/bin/{{ github_mcp_binary_name }}"
 
 - name: Clean up build directory
   ansible.builtin.file:

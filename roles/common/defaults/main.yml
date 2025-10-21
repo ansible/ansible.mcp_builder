@@ -25,3 +25,9 @@ common_mcp_registry:
 common_install_go: false
 common_npm_install: false
 common_pypi_install: false
+
+# System paths
+common_system_bin_path: "/usr/local/bin"
+
+# External URLs
+common_uv_installer_url: "https://astral.sh/uv/install.sh"
