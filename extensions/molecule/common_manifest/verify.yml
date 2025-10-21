@@ -1,0 +1,16 @@
+---
+- name: Verify
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  tasks:
+    - name: Run mcp_manage
+      ansible.builtin.command:
+        cmd: "{{ common_mcp_base_path }}/mcp_manage list"
+      register: command_output
+      changed_when: false
+
+    - name: Test script is reading the manifest correctly
+      ansible.builtin.assert:
+        that:
+          - 'command_output.stdout == "Available MCP servers:\n  - mcp_one (type: stdio, path: /path/to/mcp/one)\n  - mcp_two (type: http, path: https://path.to/mcp/two)"'
