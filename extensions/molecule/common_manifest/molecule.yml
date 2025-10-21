@@ -31,12 +31,6 @@ ansible:
         - --pull-policy missing
         - --execution-environment-image ghcr.io/ansible/community-ansible-dev-tools:latest
 
-  playbooks:
-    create: create.yml
-    converge: converge.yml
-    destroy: destroy.yml
-    verify: verify.yml
-
 provisioner:
   name: ansible
   inventory:
@@ -53,19 +47,3 @@ provisioner:
             - name: mcp_two
               type: http
               path: "https://path.to/mcp/two"
-
-scenario:
-  name: common_manifest
-  test_sequence:
-    - dependency
-    - cleanup
-    - destroy
-    - syntax
-    - create
-    - prepare
-    - converge
-    - idempotence
-    - side_effect
-    - verify
-    - cleanup
-    - destroy
