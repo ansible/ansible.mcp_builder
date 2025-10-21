@@ -30,3 +30,13 @@ ansible:
         - --mode stdout
         - --pull-policy missing
         - --execution-environment-image ghcr.io/ansible/community-ansible-dev-tools:latest
+
+scenario:
+  test_sequence:
+    - destroy
+    - syntax
+    - create
+    - converge
+    - idempotence
+    - verify
+    - destroy
