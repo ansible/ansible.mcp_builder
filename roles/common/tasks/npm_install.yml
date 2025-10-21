@@ -14,24 +14,34 @@
   register: common_node_version_output
   changed_when: false
 
-- name: Display Node.js version
-  ansible.builtin.debug:
-    msg: "Installed Node.js version: {{ common_node_version_output.stdout }}"
-  when: common_node_version_output is defined
+- name: Assert Node.js is working
+  ansible.builtin.assert:
+    that:
+      - common_node_version_output.rc == 0
+      - common_node_version_output.stdout is defined
+      - common_node_version_output.stdout != ""
+    fail_msg: "Node.js installation verification failed - command 'node --version' did not work"
+    success_msg: "Node.js {{ common_node_version_output.stdout }} verified successfully"
 
 - name: Verify NPM installation
   ansible.builtin.command: npm --version
   register: common_npm_version_output
   changed_when: false
 
-- name: Display NPM version
-  ansible.builtin.debug:
-    msg: "Installed NPM version: {{ common_npm_version_output.stdout }}"
-  when: common_npm_version_output is defined
+- name: Assert NPM is working
+  ansible.builtin.assert:
+    that:
+      - common_npm_version_output.rc == 0
+      - common_npm_version_output.stdout is defined
+      - common_npm_version_output.stdout != ""
+    fail_msg: "NPM installation verification failed - command 'npm --version' did not work"
+    success_msg: "NPM {{ common_npm_version_output.stdout }} verified successfully"
 
 - name: Get npm servers from discovered registries
   ansible.builtin.set_fact:
-    common_npm_servers: "{{ common_discovered_registries | selectattr('type', 'equalto', 'npm') | list }}"
+    common_npm_servers: "{{ npm_servers_filtered }}"
+  vars:
+    npm_servers_filtered: "{{ common_discovered_registries | selectattr('type', 'equalto', 'npm') | list }}"
 
 - name: Create MCP servers directory
   ansible.builtin.file:
@@ -40,46 +50,59 @@
     mode: "0755"
   when: common_npm_servers | length > 0
 
-- name: Initialize package.json for MCP servers
-  ansible.builtin.shell: |
-    set -o pipefail
-    cd {{ common_mcp_base_path }}/npm_installs
-    if [ ! -f package.json ]; then
-      npm init -y
-    fi
-  args:
-    executable: /bin/bash
-    creates: "{{ common_mcp_base_path }}/npm_installs/package.json"
+- name: Check if package.json exists
+  ansible.builtin.stat:
+    path: "{{ common_mcp_base_path }}/npm_installs/package.json"
+  register: common_package_json_check
   when: common_npm_servers | length > 0
+
+- name: Initialize package.json for MCP servers
+  ansible.builtin.command:
+    cmd: npm init -y
+    chdir: "{{ common_mcp_base_path }}/npm_installs"
+  when:
+    - common_npm_servers | length > 0
+    - not common_package_json_check.stat.exists
   changed_when: true
 
-- name: Install MCP servers via npm
-  ansible.builtin.shell: |
-    set -o pipefail
-    cd {{ common_mcp_base_path }}/npm_installs
-    npm install {{ item.name }}
-  args:
-    executable: /bin/bash
+- name: Check if MCP server is already installed in npm
+  ansible.builtin.stat:
+    path: "{{ common_npm_module_path }}"
   loop: "{{ common_npm_servers }}"
   when: common_npm_servers | length > 0
+  register: common_npm_server_exists
+  vars:
+    common_npm_module_path: "{{ common_mcp_base_path }}/npm_installs/node_modules/{{ item.name }}"
+
+- name: Install MCP servers via npm
+  community.general.npm:
+    name: "{{ item.item.name }}"
+    path: "{{ common_mcp_base_path }}/npm_installs"
+    state: present
+  loop: "{{ common_npm_check_results }}"
+  when:
+    - common_npm_servers | length > 0
+    - not item.stat.exists
   register: common_mcp_install_result
   failed_when: false
-  changed_when: common_mcp_install_result.rc == 0
+  vars:
+    common_npm_check_results: "{{ common_npm_server_exists.results | default([]) }}"
 
-- name: Verify MCP servers are callable
-  ansible.builtin.shell: |
-    set -o pipefail
-    npx --prefix {{ common_mcp_base_path }}/npm_installs {{ item.name }} --help || echo "FAILED: {{ item.name }}"
-  args:
-    executable: /bin/bash
+- name: Verify NPM MCP servers are callable
+  ansible.builtin.command:
+    cmd: npx --prefix {{ common_mcp_base_path }}/npm_installs {{ item.name }} --help
   loop: "{{ common_npm_servers }}"
   when: common_npm_servers | length > 0
   register: common_mcp_verify_result
-  failed_when: false
   changed_when: false
 
-- name: Display MCP server verification results
-  ansible.builtin.debug:
-    msg: "{{ 'MCP server working' if item.rc == 0 else 'MCP server failed' }}: {{ item.item.name }}"
-  loop: "{{ common_mcp_verify_result.results | default([]) }}"
+- name: Assert NPM MCP servers are working correctly
+  ansible.builtin.assert:
+    that:
+      - item.rc == 0
+    fail_msg: "NPM MCP server '{{ item.item.name }}' failed verification - not responding to --help"
+    success_msg: "NPM MCP server '{{ item.item.name }}' verified successfully"
+  loop: "{{ common_npm_verify_results }}"
   when: common_npm_servers | length > 0
+  vars:
+    common_npm_verify_results: "{{ common_mcp_verify_result.results | default([]) }}"
