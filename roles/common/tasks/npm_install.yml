@@ -75,16 +75,16 @@
     common_npm_module_path: "{{ common_mcp_base_path }}/npm_installs/node_modules/{{ item.name }}"
 
 - name: Install MCP servers via npm
-  community.general.npm:
-    name: "{{ item.item.name }}"
-    path: "{{ common_mcp_base_path }}/npm_installs"
-    state: present
+  ansible.builtin.command:
+    cmd: npm install {{ item.item.name }}
+    chdir: "{{ common_mcp_base_path }}/npm_installs"
   loop: "{{ common_npm_check_results }}"
   when:
     - common_npm_servers | length > 0
     - not item.stat.exists
   register: common_mcp_install_result
   failed_when: false
+  changed_when: common_mcp_install_result.rc == 0
   vars:
     common_npm_check_results: "{{ common_npm_server_exists.results | default([]) }}"
 
