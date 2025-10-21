@@ -25,25 +25,8 @@ ansible:
       ansible_playbook:
         - --diff
         - --force-handlers
-        - --inventory=/path/to/inventory.yml
+        - --inventory=${MOLECULE_SCENARIO_DIRECTORY}/../inventory.yml
       ansible_navigator:
         - --mode stdout
         - --pull-policy missing
         - --execution-environment-image ghcr.io/ansible/community-ansible-dev-tools:latest
-
-provisioner:
-  name: ansible
-  inventory:
-    hosts:
-      all:
-        vars:
-          common_mcp_base_path: "/tmp/mcp_manifest"
-          common_discovered_registries:
-            - name: mcp_one
-              type: stdio
-              path: /path/to/mcp/one
-              args:
-                - "--stdio"
-            - name: mcp_two
-              type: http
-              path: "https://path.to/mcp/two"
