@@ -69,7 +69,7 @@ my_role_mcp_registry:
     type: "go"
     args: ["stdio"]
     description: "My custom MCP server"
-  - name: "my-npm-server"  
+  - name: "my-npm-server"
     type: "npm"
     args: ["--config", "production"]
 ```
@@ -82,18 +82,18 @@ The generated `/opt/mcp/mcpservers.json` file contains all server definitions:
 {
     "mcp-hello-world": {
         "type": "stdio",
-        "path": "npx --prefix /opt/mcp/npm_installs mcp-hello-world",
+        "command": "npx --prefix /opt/mcp/npm_installs mcp-hello-world",
         "args": []
     },
     "aws-iam-mcp-server": {
         "type": "stdio",
-        "path": "uvx awslabs.iam-mcp-server",
+        "command": "uvx awslabs.iam-mcp-server",
         "args": [],
         "package": "awslabs.iam-mcp-server"
     },
     "github-mcp-server": {
         "type": "stdio",
-        "path": "/opt/mcp/bin/github-mcp-server",
+        "command": "/opt/mcp/bin/github-mcp-server",
         "args": ["stdio"],
         "description": "GitHub MCP Server - Access GitHub repositories, issues, and pull requests"
     }
@@ -105,8 +105,10 @@ The generated `/opt/mcp/mcpservers.json` file contains all server definitions:
 The `ansible.mcp_builder` role is designed to run as a final step in building an EE.
 
 ```
-  append_final: |
+  append_builder: |
     RUN ansible-playbook ansible.mcp_builder.install_mcp
+  append_final: |
+    COPY --from=builder /opt/mcp /opt/mcp
 ```
 
 ### Prerequisities
