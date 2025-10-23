@@ -35,7 +35,7 @@ list_servers() {
     echo "Available MCP servers:"
     jq -r 'keys[]' "$MANIFEST_FILE" | while read -r server; do
         type=$(jq -r ".[\"$server\"].type" "$MANIFEST_FILE")
-        path=$(jq -r ".[\"$server\"].path" "$MANIFEST_FILE")
+        path=$(jq -r ".[\"$server\"] | .command // .url" "$MANIFEST_FILE")
         echo "  - $server (type: $type, path: $path)"
     done
 }

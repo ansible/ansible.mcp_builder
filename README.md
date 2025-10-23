@@ -81,18 +81,18 @@ The generated `/opt/mcp/mcpservers.json` file contains all server definitions:
 ```json
 {
     "mcp-hello-world": {
-        "type": "npm",
+        "type": "stdio",
         "path": "npx --prefix /opt/mcp/npm_installs mcp-hello-world",
         "args": []
     },
     "aws-iam-mcp-server": {
-        "type": "pypi",
+        "type": "stdio",
         "path": "uvx awslabs.iam-mcp-server",
         "args": [],
         "package": "awslabs.iam-mcp-server"
     },
     "github-mcp-server": {
-        "type": "go",
+        "type": "stdio",
         "path": "/opt/mcp/bin/github-mcp-server",
         "args": ["stdio"],
         "description": "GitHub MCP Server - Access GitHub repositories, issues, and pull requests"

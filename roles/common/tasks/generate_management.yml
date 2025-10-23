@@ -1,0 +1,8 @@
+---
+# Generate MCP management script
+
+- name: Create MCP management script
+  ansible.builtin.template:
+    src: mcp_manage.j2
+    dest: "{{ common_mcp_base_path }}/mcp_manage"
+    mode: "0755"

@@ -1,0 +1,13 @@
+---
+all:
+  vars:
+    common_mcp_base_path: "/tmp/mcp_manifest"
+    common_discovered_registries:
+      - name: mcp_one
+        type: stdio
+        path: /path/to/mcp/one
+        args:
+          - "--stdio"
+      - name: mcp_two
+        type: http
+        path: "https://path.to/mcp/two"

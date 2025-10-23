@@ -10,7 +10,7 @@ on: # yamllint disable-line rule:truthy
     branches: [main]
   workflow_dispatch:
   # schedule:
-    # - cron: '0 0 * * *'
+  #   - cron: '0 0 * * *'
 
 jobs:
   changelog:
@@ -24,6 +24,8 @@ jobs:
     uses: ansible/ansible-content-actions/.github/workflows/sanity.yaml@main
   unit-galaxy:
     uses: ansible/ansible-content-actions/.github/workflows/unit.yaml@main
+  integration:
+    uses: ansible/ansible-content-actions/.github/workflows/integration.yaml@main
   all_green:
     if: ${{ always() }}
     needs:
@@ -31,6 +33,7 @@ jobs:
       - build-import
       - sanity
       - unit-galaxy
+      - integration
       - ansible-lint
     runs-on: ubuntu-latest
     steps:
@@ -39,6 +42,7 @@ jobs:
           set([
           '${{ needs.changelog.result }}',
           '${{ needs.sanity.result }}',
-          '${{ needs.unit-galaxy.result }}'
-          '${{ needs.ansible-lint.result }}'
+          '${{ needs.unit-galaxy.result }}',
+          '${{ needs.integration.result }}',
+          '${{ needs.ansible-lint.result }}',
           ])"

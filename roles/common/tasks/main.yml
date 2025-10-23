@@ -57,11 +57,8 @@
     mode: "0755"
   become: true
 
-- name: Create MCP management script
-  ansible.builtin.template:
-    src: mcp_manage.j2
-    dest: "{{ common_mcp_base_path }}/mcp_manage"
-    mode: "0755"
+- name: Generate MCP management script
+  ansible.builtin.include_tasks: generate_management.yml
 
 - name: Create symlink for mcp_manage in system bin directory
   ansible.builtin.file:
