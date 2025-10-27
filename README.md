@@ -66,12 +66,17 @@ The collection uses a unified registry system where roles can contribute MCP ser
 # In roles/{role_name}/defaults/main.yml
 my_role_mcp_registry:
   - name: "my-awesome-server"
-    type: "go"
+    type: "stdio"
+    lang: "go"
     args: ["stdio"]
     description: "My custom MCP server"
   - name: "my-npm-server"
-    type: "npm"
+    type: "stdio"
+    lang: "npm"
     args: ["--config", "production"]
+  - name: "remote-mcp-server"
+    type: "http"
+    path: "https://example.com/mcp"
 ```
 
 ## MCP Server Manifest Format
@@ -96,6 +101,11 @@ The generated `/opt/mcp/mcpservers.json` file contains all server definitions:
         "command": "/opt/mcp/bin/github-mcp-server",
         "args": ["stdio"],
         "description": "GitHub MCP Server - Access GitHub repositories, issues, and pull requests"
+    },
+    "remote": {
+        "args": [],
+        "type": "http",
+        "url": "https://example.com/mcp"
     }
 }
 ```
