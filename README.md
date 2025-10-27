@@ -66,12 +66,17 @@ The collection uses a unified registry system where roles can contribute MCP ser
 # In roles/{role_name}/defaults/main.yml
 my_role_mcp_registry:
   - name: "my-awesome-server"
-    type: "go"
+    type: "stdio"
+    lang: "go"
     args: ["stdio"]
     description: "My custom MCP server"
-  - name: "my-npm-server"  
-    type: "npm"
+  - name: "my-npm-server"
+    type: "stdio"
+    lang: "npm"
     args: ["--config", "production"]
+  - name: "remote-mcp-server"
+    type: "http"
+    path: "https://example.com/mcp"
 ```
 
 ## MCP Server Manifest Format
@@ -82,20 +87,25 @@ The generated `/opt/mcp/mcpservers.json` file contains all server definitions:
 {
     "mcp-hello-world": {
         "type": "stdio",
-        "path": "npx --prefix /opt/mcp/npm_installs mcp-hello-world",
+        "command": "npx --prefix /opt/mcp/npm_installs mcp-hello-world",
         "args": []
     },
     "aws-iam-mcp-server": {
         "type": "stdio",
-        "path": "uvx awslabs.iam-mcp-server",
+        "command": "uvx awslabs.iam-mcp-server",
         "args": [],
         "package": "awslabs.iam-mcp-server"
     },
     "github-mcp-server": {
         "type": "stdio",
-        "path": "/opt/mcp/bin/github-mcp-server",
+        "command": "/opt/mcp/bin/github-mcp-server",
         "args": ["stdio"],
         "description": "GitHub MCP Server - Access GitHub repositories, issues, and pull requests"
+    },
+    "remote": {
+        "args": [],
+        "type": "http",
+        "url": "https://example.com/mcp"
     }
 }
 ```
@@ -105,8 +115,10 @@ The generated `/opt/mcp/mcpservers.json` file contains all server definitions:
 The `ansible.mcp_builder` role is designed to run as a final step in building an EE.
 
 ```
-  append_final: |
+  append_builder: |
     RUN ansible-playbook ansible.mcp_builder.install_mcp
+  append_final: |
+    COPY --from=builder /opt/mcp /opt/mcp
 ```
 
 ### Prerequisities

@@ -7,24 +7,25 @@
     msg: |
       Invalid MCP server registry entry found: {{ item }}
 
-      Registry entries must be dictionaries with 'name' and 'type' attributes.
-      Valid types are: npm, pypi, go
+      Registry entries must be dictionaries with 'name' and 'lang' attributes.
+      Valid languages are: npm, pypi, go
 
       Example:
         - name: "my-server"
-          type: "npm"
+          type: "stdio"
+          lang: "npm"
           args: []
   loop: "{{ common_discovered_registries }}"
-  when: not (item is mapping and item.name is defined and item.type is defined)
+  when: not (item is mapping and item.name is defined and item.lang is defined)
 
 - name: Validate MCP server types
   ansible.builtin.fail:
     msg: |
-      Unknown MCP server type '{{ item.type }}' for server '{{ item.name }}'.
+      Unknown MCP server language '{{ item.lang }}' for server '{{ item.name }}'.
 
       Supported types are: npm, pypi, go
   loop: "{{ common_discovered_registries }}"
-  when: item.type not in ['npm', 'pypi', 'go']
+  when: item.lang not in ['npm', 'pypi', 'go', '']
 
 - name: Build updated registry with paths assigned
   ansible.builtin.set_fact:
@@ -37,11 +38,11 @@
     server_with_path: >-
       {%- if item.path is defined -%}
         {{ item }}
-      {%- elif item.type == 'npm' -%}
+      {%- elif item.lang == 'npm' -%}
         {{ item | combine({'path': 'npx --prefix ' + common_mcp_base_path + '/npm_installs ' + item.name}) }}
-      {%- elif item.type == 'pypi' -%}
+      {%- elif item.lang == 'pypi' -%}
         {{ item | combine({'path': 'uvx ' + item.name, 'package': item.name}) }}
-      {%- elif item.type == 'go' -%}
+      {%- elif item.lang == 'go' -%}
         {{ item | combine({'path': common_mcp_base_path + '/bin/' + item.name}) }}
       {%- else -%}
         {{ item }}

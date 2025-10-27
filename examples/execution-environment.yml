@@ -22,5 +22,7 @@ additional_build_steps:
     COPY _build/ansible.mcp /tmp/ansible.mcp
   append_galaxy: |
     RUN rm -rf /tmp/ansible.mcp_builder
-  append_final: |
+  append_builder: |
     RUN ansible-playbook ansible.mcp_builder.install_mcp
+  append_final: |
+    COPY --from=builder /opt/mcp /opt/mcp

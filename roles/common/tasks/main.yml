@@ -26,9 +26,9 @@
     common_npm_install: "{{ common_npm_servers_found | length > 0 }}"
     common_pypi_install: "{{ common_pypi_servers_found | length > 0 }}"
   vars:
-    common_go_servers_found: "{{ common_discovered_registries | selectattr('type', 'equalto', 'go') | list }}"
-    common_npm_servers_found: "{{ common_discovered_registries | selectattr('type', 'equalto', 'npm') | list }}"
-    common_pypi_servers_found: "{{ common_discovered_registries | selectattr('type', 'equalto', 'pypi') | list }}"
+    common_go_servers_found: "{{ common_discovered_registries | selectattr('lang', 'equalto', 'go') | list }}"
+    common_npm_servers_found: "{{ common_discovered_registries | selectattr('lang', 'equalto', 'npm') | list }}"
+    common_pypi_servers_found: "{{ common_discovered_registries | selectattr('lang', 'equalto', 'pypi') | list }}"
 
 - name: Include Go installation tasks
   ansible.builtin.include_tasks: go_install.yml

@@ -1,23 +1,20 @@
 {% set servers = {} %}
 {% if common_discovered_registries is defined and common_discovered_registries | length > 0 %}
-{% for server in common_discovered_registries %}
-{% set server_id = server.name.split('.')[-1] if '.' in server.name else server.name %}
-{% set server_data = {
-    "type": server.type,
-    "args": server.args | default([])
-} %}
-{% if server.type == "http" %}
-{% set _ = server_data.update({"url": server.path}) %}
-{% elif server.type == "stdio" %}
-{% set _ = server_data.update({"command": server.path}) %}
-{% endif %}
-{% if server.package is defined %}
-{% set _ = server_data.update({"package": server.package}) %}
-{% endif %}
-{% if server.description is defined %}
-{% set _ = server_data.update({"description": server.description}) %}
-{% endif %}
-{% set _ = servers.update({server_id: server_data}) %}
-{% endfor %}
+  {% for server in common_discovered_registries %}
+    {% set server_id = server.name.split('.')[-1] if '.' in server.name else server.name %}
+    {% set server_data = {
+        "type": server.type,
+        "args": server.args | default([])
+    } %}
+    {% if server.type == "http" %}
+      {% set _ = server_data.update({"url": server.path}) %}
+    {% elif server.type == "stdio" %}
+      {% set _ = server_data.update({"command": server.path}) %}
+    {% endif %}
+    {% if server.description is defined %}
+      {% set _ = server_data.update({"description": server.description}) %}
+    {% endif %}
+    {% set _ = servers.update({server_id: server_data}) %}
+  {% endfor %}
 {% endif %}
 {{ servers | to_nice_json(indent=4) }}
