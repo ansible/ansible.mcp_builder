@@ -53,12 +53,8 @@ show_server_info() {
 
     echo "Server: $server"
     echo "Type: $(jq -r ".[\"$server\"].type" "$MANIFEST_FILE")"
-    echo "Path: $(jq -r ".[\"$server\"].path" "$MANIFEST_FILE")"
+    echo "Path: $(jq -r ".[\"$server\"] | .command // .url" "$MANIFEST_FILE")"
     echo "Default args: $(jq -r ".[\"$server\"].args | join(\" \")" "$MANIFEST_FILE")"
-
-    if jq -e ".[\"$server\"].package" "$MANIFEST_FILE" >/dev/null 2>&1; then
-        echo "Package: $(jq -r ".[\"$server\"].package" "$MANIFEST_FILE")"
-    fi
 
     if jq -e ".[\"$server\"].description" "$MANIFEST_FILE" >/dev/null 2>&1; then
         echo "Description: $(jq -r ".[\"$server\"].description" "$MANIFEST_FILE")"
@@ -78,7 +74,13 @@ run_server() {
         exit 1
     fi
 
-    local path=$(jq -r ".[\"$server\"].path" "$MANIFEST_FILE")
+    local type=$(jq -r ".[\"$server\"].type" "$MANIFEST_FILE")
+    if ! jq -e ".[\"$server\"].type == \"stdio\"" "$MANIFEST_FILE" >/dev/null 2>&1; then
+        echo "Error: Server '$server' of type '$type' cannot be run with this tool"
+        exit 1
+    fi
+
+    local path=$(jq -r ".[\"$server\"].command" "$MANIFEST_FILE")
     local default_args=$(jq -r ".[\"$server\"].args | join(\" \")" "$MANIFEST_FILE")
 
     echo "Executing MCP server: $server"
