@@ -26,8 +26,8 @@
   ansible.builtin.stat:
     path: "{{ item }}"
   loop:
-    - "{{ ansible_env.HOME }}/.cargo/bin/uv"
-    - "{{ ansible_env.HOME }}/.local/bin/uv"
+    - "{{ lookup('env', 'HOME') }}/.cargo/bin/uv"
+    - "{{ lookup('env', 'HOME') }}/.local/bin/uv"
     - "{{ common_system_bin_path }}/uv"
     - "/usr/bin/uv"
   register: common_uv_location_check
@@ -45,7 +45,7 @@
 
 - name: Search for uv binary in home directory as fallback
   ansible.builtin.find:
-    paths: "{{ ansible_env.HOME }}"
+    paths: "{{ lookup('env', 'HOME') }}"
     patterns: "uv"
     file_type: file
     recurse: true
@@ -73,8 +73,8 @@
   ansible.builtin.stat:
     path: "{{ item }}"
   loop:
-    - "{{ ansible_env.HOME }}/.cargo/bin/uvx"
-    - "{{ ansible_env.HOME }}/.local/bin/uvx"
+    - "{{ lookup('env', 'HOME') }}/.cargo/bin/uvx"
+    - "{{ lookup('env', 'HOME') }}/.local/bin/uvx"
     - "{{ common_system_bin_path }}/uvx"
     - "/usr/bin/uvx"
   register: common_uvx_location_check
@@ -129,7 +129,7 @@
 - name: Install MCP servers from PyPI using uv
   ansible.builtin.command:
     cmd: uv tool install {{ item.item.name }}
-  loop: "{{ pypi_check_results }}"
+  loop: "{{ common_pypi_check_results }}"
   when:
     - common_pypi_servers | length > 0
     - not item.stat.exists
