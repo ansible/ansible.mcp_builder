@@ -7,6 +7,7 @@
     state: directory
     mode: "0755"
   become: true
+  when: not common_go_installed
 
 - name: Download and extract Go
   ansible.builtin.unarchive:
@@ -18,15 +19,22 @@
     mode: "0755"
     creates: /usr/local/go/bin/go
   become: true
+  when: not common_go_installed
 
 - name: Set Go environment variables
   ansible.builtin.lineinfile:
     path: /etc/environment
-    line: "{{ item }}"
+    line: "{{ go_env_item }}"
     create: true
     mode: "0644"
   loop:
     - 'PATH="/usr/local/go/bin:$PATH"'
-    - 'GOPATH="{{ common_go_path }}"'
-    - 'GOCACHE="{{ common_go_cache }}"'
+  loop_control:
+    loop_var: go_env_item
   become: true
+  when: not common_go_installed
+
+- name: Mark Go as installed
+  ansible.builtin.set_fact:
+    common_go_installed: true
+  when: not common_go_installed

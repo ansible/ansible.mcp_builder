@@ -10,34 +10,6 @@ Sets up a generic MCP build environment with automatic dependency detection and 
 - **Management script** - Provides `mcp_manage` command-line tool for server execution
 - **Multiple server types** - Supports npm, PyPI, and source build installations
 
-## Variables
-
-The following variables can be customized:
-
-```yaml
-# Go version to install (default: "1.24.4")
-common_golang_version: "1.25.0"
-
-# Base path for MCP installations (default: "/opt/mcp")
-common_mcp_base_path: "/opt/mcp"
-
-# Binary management path (default: "/usr/local/bin")
-common_mcp_bin_path: "/usr/local/bin"
-
-# Go environment paths
-common_go_path: "/go"           # GOPATH (default: "/go")
-common_go_cache: "/tmp/go-cache" # GOCACHE (default: "/tmp/go-cache")
-
-# MCP Server Registry - define your MCP servers here
-common_mcp_registry:
-  - name: "mcp-hello-world"
-    type: "npm"
-    args: []
-  - name: "awslabs.iam-mcp-server"
-    type: "pypi"
-    args: []
-```
-
 ## Registry System
 
 The common role uses a registry system to discover MCP servers from all roles. Each role can contribute servers by defining a `{role_name}_mcp_registry` variable.
@@ -47,12 +19,13 @@ The common role uses a registry system to discover MCP servers from all roles. E
 ```yaml
 <role_name - e.g. github>_mcp_registry:
   - name: "server-executable-name"
-    type: "npm|pypi|go"
+    type: "http|stdio"
+    lang: "npm|pypi|go"
     args: ["list", "of", "default", "arguments"]
     description: "Optional server description"
 ```
 
-### Server Types
+### Server "Languages" Supported
 
 - **`npm`** - Packages installed via npm and executed with `npx`
 - **`pypi`** - Python packages installed with `uv tool install` and executed with `uvx`
@@ -62,33 +35,7 @@ The common role uses a registry system to discover MCP servers from all roles. E
 
 - **`/opt/mcp/mcpservers.json`** - JSON manifest of all MCP servers
 - **`/opt/mcp/mcp_manage`** - Server management script
-- **`/usr/local/bin/mcp_manage`** - Symlink for global access
 
-## Example Usage
-
-### Basic installation with custom servers
-```yaml
-- name: Setup MCP environment with custom servers
-  hosts: localhost
-  vars:
-    common_mcp_base_path: "/opt/mcp"
-    common_mcp_registry:
-      - name: "my-custom-server"
-        type: "npm"
-        args: ["--verbose"]
-        description: "My custom MCP server"
-  roles:
-    - ansible.mcp_builder.common
-```
-
-### Using with other MCP roles
-```yaml
-- name: Install MCP servers from multiple roles
-  hosts: localhost
-  roles:
-    - ansible.mcp_builder.common      # Installs npm/pypi servers
-    - ansible.mcp_builder.github_mcp  # Adds github-mcp-server
-    # Any other MCP server roles...
 ```
 
 ## Using the Management Script

@@ -1,31 +1,5 @@
 ---
-# Centralized path assignment for all MCP server types
-# This runs after all installations are complete
-
-- name: Validate MCP server registry entries
-  ansible.builtin.fail:
-    msg: |
-      Invalid MCP server registry entry found: {{ item }}
-
-      Registry entries must be dictionaries with 'name' and 'lang' attributes.
-      Valid languages are: npm, pypi, go
-
-      Example:
-        - name: "my-server"
-          type: "stdio"
-          lang: "npm"
-          args: []
-  loop: "{{ common_discovered_registries }}"
-  when: not (item is mapping and item.name is defined and item.lang is defined)
-
-- name: Validate MCP server types
-  ansible.builtin.fail:
-    msg: |
-      Unknown MCP server language '{{ item.lang }}' for server '{{ item.name }}'.
-
-      Supported types are: npm, pypi, go
-  loop: "{{ common_discovered_registries }}"
-  when: item.lang not in ['npm', 'pypi', 'go', '']
+# Assign paths to server registry entries based on language type
 
 - name: Build updated registry with paths assigned
   ansible.builtin.set_fact:
@@ -36,19 +10,21 @@
     common_updated_registries: "{{ common_updated_registries + [server_with_path] }}"
   vars:
     server_with_path: >-
-      {%- if item.path is defined -%}
-        {{ item }}
-      {%- elif item.lang == 'npm' -%}
-        {{ item | combine({'path': 'npx --prefix ' + common_mcp_base_path + '/npm_installs ' + item.name}) }}
-      {%- elif item.lang == 'pypi' -%}
-        {{ item | combine({'path': 'uvx ' + item.name, 'package': item.name}) }}
-      {%- elif item.lang == 'go' -%}
-        {{ item | combine({'path': common_mcp_base_path + '/bin/' + item.name}) }}
+      {%- if server_item.path is defined -%}
+        {{ server_item }}
+      {%- elif server_item.lang == 'npm' -%}
+        {{ server_item | combine({'path': 'npx --prefix ' + common_mcp_base_path + '/npm_installs ' + server_item.name}) }}
+      {%- elif server_item.lang == 'pypi' -%}
+        {{ server_item | combine({'path': 'uvx ' + server_item.name}) }}
+      {%- elif server_item.lang == 'go' -%}
+        {{ server_item | combine({'path': common_mcp_base_path + '/bin/' + server_item.name}) }}
       {%- else -%}
-        {{ item }}
+        {{ server_item }}
       {%- endif -%}
-  loop: "{{ common_discovered_registries }}"
+  loop: "{{ common_server_registries }}"
+  loop_control:
+    loop_var: server_item
 
-- name: Replace common_discovered_registries with updated version
+- name: Replace server_registries with updated version
   ansible.builtin.set_fact:
-    common_discovered_registries: "{{ common_updated_registries }}"
+    common_server_registries: "{{ common_updated_registries }}"

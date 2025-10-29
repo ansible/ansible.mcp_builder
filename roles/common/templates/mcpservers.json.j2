@@ -1,7 +1,7 @@
 {% set servers = {} %}
-{% if common_discovered_registries is defined and common_discovered_registries | length > 0 %}
-  {% for server in common_discovered_registries %}
-    {% set server_id = server.name.split('.')[-1] if '.' in server.name else server.name %}
+{% if common_server_registries is defined and common_server_registries | length > 0 %}
+  {% for server in common_server_registries %}
+    {% set server_id = server.name %}
     {% set server_data = {
         "type": server.type,
         "args": server.args | default([])

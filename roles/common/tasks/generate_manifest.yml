@@ -1,8 +1,67 @@
 ---
-# Generate MCP servers manifest after all path updates are complete
+# Generate MCP servers manifest
 
-- name: Generate MCP servers manifest
+- name: Discover registries from current role
+  ansible.builtin.set_fact:
+    common_server_registries: >-
+      {%- set registries = [] -%}
+      {%- for var_name in vars.keys() -%}
+        {%- if var_name.endswith('_mcp_registry') -%}
+          {%- set var_value = vars[var_name] -%}
+          {%- if var_value is iterable and var_value is not string -%}
+            {%- for server in var_value -%}
+              {%- if server is mapping and server.name is defined and server.lang is defined -%}
+                {%- set _ = registries.append(server) -%}
+              {%- endif -%}
+            {%- endfor -%}
+          {%- endif -%}
+        {%- endif -%}
+      {%- endfor -%}
+      {{ registries }}
+
+- name: Assign paths to registry entries
+  ansible.builtin.include_tasks: assign_registry_paths.yml
+
+- name: Check if MCP servers manifest exists
+  ansible.builtin.stat:
+    path: "{{ common_mcp_base_path }}/mcpservers.json"
+  register: common_manifest_exists
+
+- name: Initialize empty manifest for new installation
+  ansible.builtin.set_fact:
+    common_existing_manifest: {}
+  when: not common_manifest_exists.stat.exists
+
+- name: Read and parse existing manifest
+  ansible.builtin.set_fact:
+    common_existing_manifest: "{{ lookup('file', common_mcp_base_path + '/mcpservers.json') | from_json }}"
+  when: common_manifest_exists.stat.exists
+
+- name: Generate new manifest entries using template
   ansible.builtin.template:
     src: mcpservers.json.j2
+    dest: "{{ common_mcp_base_path }}/mcpservers_new.json"
+    mode: "0644"
+  register: common_template_generated
+  when: common_server_registries | length > 0
+
+- name: Read new entries from template
+  ansible.builtin.set_fact:
+    common_new_manifest_entries: "{{ lookup('file', common_mcp_base_path + '/mcpservers_new.json') | from_json if common_template_generated.changed else {} }}"
+
+- name: Merge new entries with existing manifest
+  ansible.builtin.set_fact:
+    common_final_manifest: "{{ common_existing_manifest | combine(common_new_manifest_entries) }}"
+
+- name: Write updated MCP servers manifest
+  ansible.builtin.copy:
+    content: "{{ common_final_manifest | to_nice_json(indent=4) }}"
     dest: "{{ common_mcp_base_path }}/mcpservers.json"
     mode: "0644"
+  become: true
+  when: common_new_manifest_entries | length > 0
+
+- name: Clean up temporary manifest file
+  ansible.builtin.file:
+    path: "{{ common_mcp_base_path }}/mcpservers_new.json"
+    state: absent
