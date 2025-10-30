@@ -58,8 +58,6 @@
     content: "{{ common_final_manifest | to_nice_json(indent=4) }}"
     dest: "{{ common_mcp_base_path }}/mcpservers.json"
     mode: "0644"
-    lstrip_blocks: true
-    trim_blocks: true
   become: true
   when: common_new_manifest_entries | length > 0
 
