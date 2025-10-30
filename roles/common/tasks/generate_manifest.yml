@@ -37,21 +37,33 @@
     common_existing_manifest: "{{ lookup('file', common_mcp_base_path + '/mcpservers.json') | from_json }}"
   when: common_manifest_exists.stat.exists
 
-- name: Generate new manifest entries using template
-  ansible.builtin.template:
-    src: mcpservers.json.j2
-    dest: "{{ common_mcp_base_path }}/mcpservers_new.json"
-    mode: "0644"
-  register: common_template_generated
-  when: common_server_registries | length > 0
-
-- name: Read new entries from template
+- name: Generate new manifest entries
   ansible.builtin.set_fact:
-    common_new_manifest_entries: "{{ lookup('file', common_mcp_base_path + '/mcpservers_new.json') | from_json if common_template_generated.changed else {} }}"
+    common_new_manifest_entries: >-
+      {%- set servers = {} -%}
+      {%- if common_server_registries is defined and common_server_registries | length > 0 -%}
+        {%- for server in common_server_registries -%}
+          {%- set server_id = server.name -%}
+          {%- set server_data = {
+              "type": server.type,
+              "args": server.args | default([])
+          } -%}
+          {%- if server.type == "http" -%}
+            {%- set _ = server_data.update({"url": server.path}) -%}
+          {%- elif server.type == "stdio" -%}
+            {%- set _ = server_data.update({"command": server.path}) -%}
+          {%- endif -%}
+          {%- if server.description is defined -%}
+            {%- set _ = server_data.update({"description": server.description}) -%}
+          {%- endif -%}
+          {%- set _ = servers.update({server_id: server_data}) -%}
+        {%- endfor -%}
+      {%- endif -%}
+      {{ servers }}
 
 - name: Merge new entries with existing manifest
   ansible.builtin.set_fact:
-    common_final_manifest: "{{ common_existing_manifest | combine(common_new_manifest_entries) }}"
+    common_final_manifest: "{{ (common_existing_manifest | default({})) | combine(common_new_manifest_entries) }}"
 
 - name: Write updated MCP servers manifest
   ansible.builtin.copy:
@@ -60,8 +72,3 @@
     mode: "0644"
   become: true
   when: common_new_manifest_entries | length > 0
-
-- name: Clean up temporary manifest file
-  ansible.builtin.file:
-    path: "{{ common_mcp_base_path }}/mcpservers_new.json"
-    state: absent
