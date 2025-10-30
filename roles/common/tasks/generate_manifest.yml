@@ -6,3 +6,5 @@
     src: mcpservers.json.j2
     dest: "{{ common_mcp_base_path }}/mcpservers.json"
     mode: "0644"
+    lstrip_blocks: true
+    trim_blocks: true
