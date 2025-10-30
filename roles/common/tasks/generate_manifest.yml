@@ -10,7 +10,7 @@
           {%- set var_value = vars[var_name] -%}
           {%- if var_value is iterable and var_value is not string -%}
             {%- for server in var_value -%}
-              {%- if server is mapping and server.name is defined and server.lang is defined -%}
+              {%- if server is mapping and server.name is defined and server.type is defined -%}
                 {%- set _ = registries.append(server) -%}
               {%- endif -%}
             {%- endfor -%}
