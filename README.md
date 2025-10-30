@@ -112,11 +112,13 @@ The generated `/opt/mcp/mcpservers.json` file contains all server definitions:
 
 ## Install MCP in EE via the ansible.mcp_builder roles
 
-The `ansible.mcp_builder` role is designed to run as a final step in building an EE.
+The `ansible.mcp_builder` role is designed to run as a step in building an EE. To select MCP servers, use the `-e` flag and `mcp_servers` variable.
+
+Servers are selected by their exact role name. E.g. `github_mcp`. 
 
 ```
   append_builder: |
-    RUN ansible-playbook ansible.mcp_builder.install_mcp
+    RUN ansible-playbook ansible.mcp_builder.install_mcp -e mcp_servers=github_mcp,<additional-servers>
   append_final: |
     COPY --from=builder /opt/mcp /opt/mcp
 ```
