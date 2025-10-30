@@ -65,6 +65,10 @@ run_server() {
     local server="$1"
     shift # Remove server name, leave additional args
 
+    local type
+    local path
+    local default_args
+
     check_manifest
 
     if ! jq -e ".[\"$server\"]" "$MANIFEST_FILE" >/dev/null 2>&1; then
@@ -74,14 +78,14 @@ run_server() {
         exit 1
     fi
 
-    local type=$(jq -r ".[\"$server\"].type" "$MANIFEST_FILE")
+    type=$(jq -r ".[\"$server\"].type" "$MANIFEST_FILE")
     if ! jq -e ".[\"$server\"].type == \"stdio\"" "$MANIFEST_FILE" >/dev/null 2>&1; then
         echo "Error: Server '$server' of type '$type' cannot be run with this tool"
         exit 1
     fi
 
-    local path=$(jq -r ".[\"$server\"].command" "$MANIFEST_FILE")
-    local default_args=$(jq -r ".[\"$server\"].args | join(\" \")" "$MANIFEST_FILE")
+    path=$(jq -r ".[\"$server\"].command" "$MANIFEST_FILE")
+    default_args=$(jq -r ".[\"$server\"].args | join(\" \")" "$MANIFEST_FILE")
 
     echo "Executing MCP server: $server"
     echo "Command: $path $default_args $*"
@@ -89,7 +93,38 @@ run_server() {
     echo "----------------------------------------"
 
     # Execute directly - no background, no PID files, no logs
-    exec $path $default_args "$@"
+    exec $path "$default_args" "$@"
+}
+
+test() {
+    local server="$1"
+    shift # Remove server name, leave additional args
+
+    local type
+    local path
+    local default_args
+
+    check_manifest
+
+    if ! jq -e ".[\"$server\"]" "$MANIFEST_FILE" >/dev/null 2>&1; then
+        echo "Error: Server '$server' not found in manifest"
+        echo "Available servers:"
+        jq -r 'keys[]' "$MANIFEST_FILE"
+        exit 1
+    fi
+
+    type=$(jq -r ".[\"$server\"].type" "$MANIFEST_FILE")
+    if ! jq -e ".[\"$server\"].type == \"stdio\"" "$MANIFEST_FILE" >/dev/null 2>&1; then
+        echo "Error: Server '$server' of type '$type' cannot be run with this tool"
+        exit 1
+    fi
+
+    path=$(jq -r ".[\"$server\"].command" "$MANIFEST_FILE")
+    default_args=$(jq -r ".[\"$server\"].args | join(\" \")" "$MANIFEST_FILE")
+
+    echo "Executing MCP server: $server"
+    echo "Command: $path $default_args $*"
+    echo '{"jsonrpc":"2.0","method":"tools/list","id":1}' | $path "$default_args" "$@" | jq '.result.tools[] | {name: .name, description: .description}'
 }
 
 # Main script logic
@@ -110,6 +145,13 @@ case "${1:-}" in
             usage
         fi
         show_server_info "$2"
+        ;;
+    test)
+        if [[ -z "${2:-}" ]]; then
+            echo "Error: Server name required for test command"
+            usage
+        fi
+        test "${@:2}"
         ;;
     *)
         usage
