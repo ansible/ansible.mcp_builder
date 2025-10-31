@@ -1,8 +1,18 @@
 ---
-- name: Configure GitHub MCP
+- name: Install and configure MCP Servers
   hosts: localhost
   connection: local
   gather_facts: false
 
-  roles:
-    - ansible.mcp_builder.github_mcp
+  vars:
+    # Convert comma-separated or JSON input to list, require explicit server selection
+    mcp_roles: "{{ (mcp_servers.split(',') if mcp_servers is defined and ',' in mcp_servers else [mcp_servers] if mcp_servers is defined else []) | list }}"
+
+    # Note: If no servers specified or invalid server names provided,
+    # Ansible will fail naturally when trying to include non-existent roles
+
+  tasks:
+    - name: Install selected MCP providers
+      ansible.builtin.include_role:
+        name: "ansible.mcp_builder.{{ item }}"
+      loop: "{{ mcp_roles }}"

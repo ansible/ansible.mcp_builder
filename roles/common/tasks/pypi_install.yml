@@ -7,41 +7,41 @@
     dest: "/tmp/uv-install.sh"
     mode: "0755"
 
-- name: Check if uv is already installed
-  ansible.builtin.stat:
-    path: "{{ common_system_bin_path }}/uv"
-  register: common_uv_check
-
 - name: Install uv
   ansible.builtin.shell: |
     set -o pipefail
     /tmp/uv-install.sh
   args:
     executable: /bin/bash
-  when: not common_uv_check.stat.exists
-  register: common_uv_install_result
-  changed_when: common_uv_install_result.rc == 0
+  when: not common_pypi_installed
+  register: common_pypi_installed_result
+  changed_when: common_pypi_installed_result.rc == 0
 
 - name: Check common uv installation locations
   ansible.builtin.stat:
-    path: "{{ item }}"
+    path: "{{ uv_path_item }}"
   loop:
     - "{{ lookup('env', 'HOME') }}/.cargo/bin/uv"
     - "{{ lookup('env', 'HOME') }}/.local/bin/uv"
     - "{{ common_system_bin_path }}/uv"
     - "/usr/bin/uv"
+  loop_control:
+    loop_var: uv_path_item
   register: common_uv_location_check
+  when: not common_pypi_installed
 
 - name: Set uv path from common locations
   ansible.builtin.set_fact:
     common_uv_path:
-      stdout: "{{ item.item }}"
+      stdout: "{{ uv_check_item.uv_path_item }}"
   loop: "{{ common_uv_location_check.results }}"
-  when:
-    - item.stat.exists
-    - item.stat.executable
   loop_control:
-    label: "{{ item.item }}"
+    loop_var: uv_check_item
+    label: "{{ uv_check_item.uv_path_item }}"
+  when:
+    - uv_check_item.stat.exists
+    - uv_check_item.stat.executable
+    - not common_pypi_installed
 
 - name: Search for uv binary in home directory as fallback
   ansible.builtin.find:
@@ -50,7 +50,9 @@
     file_type: file
     recurse: true
   register: common_uv_search_fallback
-  when: common_uv_path is not defined
+  when:
+    - common_uv_path is not defined
+    - not common_pypi_installed
 
 - name: Set uv path from search fallback
   ansible.builtin.set_fact:
@@ -58,6 +60,7 @@
       stdout: "{{ common_uv_search_fallback.files[0].path }}"
   when:
     - common_uv_path is not defined
+    - not common_pypi_installed
     - common_uv_search_fallback.files | length > 0
 
 - name: Create symlink for uv in system bin directory
@@ -71,24 +74,29 @@
 
 - name: Check common uvx installation locations
   ansible.builtin.stat:
-    path: "{{ item }}"
+    path: "{{ uvx_path_item }}"
   loop:
     - "{{ lookup('env', 'HOME') }}/.cargo/bin/uvx"
     - "{{ lookup('env', 'HOME') }}/.local/bin/uvx"
     - "{{ common_system_bin_path }}/uvx"
     - "/usr/bin/uvx"
+  loop_control:
+    loop_var: uvx_path_item
   register: common_uvx_location_check
+  when: not common_pypi_installed
 
 - name: Set uvx path from common locations
   ansible.builtin.set_fact:
     common_uvx_path:
-      stdout: "{{ item.item }}"
+      stdout: "{{ uvx_check_item.uvx_path_item }}"
   loop: "{{ common_uvx_location_check.results }}"
-  when:
-    - item.stat.exists
-    - item.stat.executable
   loop_control:
-    label: "{{ item.item }}"
+    loop_var: uvx_check_item
+    label: "{{ uvx_check_item.uvx_path_item }}"
+  when:
+    - uvx_check_item.stat.exists
+    - uvx_check_item.stat.executable
+    - not common_pypi_installed
 
 - name: Create symlink for uvx in system bin directory
   ansible.builtin.file:
@@ -97,7 +105,9 @@
     state: link
     force: true
   become: true
-  when: common_uvx_path.stdout != ""
+  when:
+    - common_uvx_path.stdout != ""
+    - not common_pypi_installed
 
 - name: Verify uv installation
   ansible.builtin.command: uv --version
@@ -113,69 +123,53 @@
     fail_msg: "UV installation verification failed - command 'uv --version' did not work"
     success_msg: "UV {{ common_uv_version_output.stdout }} verified successfully"
 
-- name: Get PyPI servers from discovered registries
+- name: Mark uv as installed
   ansible.builtin.set_fact:
-    common_pypi_servers: "{{ common_pypi_servers_filtered }}"
-  vars:
-    common_pypi_servers_filtered: "{{ common_discovered_registries | selectattr('type', 'equalto', 'pypi') | list }}"
+    common_pypi_installed: true
 
-- name: Check if PyPI MCP servers are already installed in PATH
-  ansible.builtin.stat:
-    path: "{{ common_system_bin_path }}/{{ item.name }}"
-  loop: "{{ common_pypi_servers }}"
-  when: common_pypi_servers | length > 0
-  register: common_pypi_server_check
+- name: Get PyPI package name from current role registry (element 0)
+  ansible.builtin.set_fact:
+    common_pypi_package: >-
+      {%- for var_name in vars.keys() -%}
+        {%- if var_name.endswith('_mcp_registry') -%}
+          {%- set var_value = vars[var_name] -%}
+          {%- if var_value is iterable and var_value is not string and var_value[0].lang == 'pypi' -%}
+            {{ var_value[0].name }}
+      {%- endif -%}
+        {%- endif -%}
+      {%- endfor -%}
 
-- name: Install MCP servers from PyPI using uv
+- name: Install PyPI MCP server package
   ansible.builtin.command:
-    cmd: uv tool install {{ item.item.name }}
-  loop: "{{ common_pypi_check_results }}"
-  when:
-    - common_pypi_servers | length > 0
-    - not item.stat.exists
+    cmd: uv tool install {{ common_pypi_package }}
+
   register: common_pypi_install_result
   failed_when: false
   changed_when: common_pypi_install_result.rc == 0
-  vars:
-    common_pypi_check_results: "{{ common_pypi_server_check.results | default([]) }}"
-
-- name: Display successfully installed PyPI MCP servers
-  ansible.builtin.debug:
-    msg: "Successfully installed PyPI MCP server: {{ item.item.name }}"
-  loop: "{{ common_pypi_installed_servers }}"
   when:
-    - common_pypi_servers | length > 0
-    - item.rc == 0
-    - ansible_verbosity >= 2
-  vars:
-    common_pypi_installed_servers: "{{ common_pypi_install_result.results | default([]) }}"
+    - common_pypi_package is defined
 
-- name: Display failed PyPI MCP server installations
+- name: Display successfully installed PyPI package
   ansible.builtin.debug:
-    msg: "Failed to install PyPI MCP server: {{ item.item.name }}"
-  loop: "{{ common_pypi_install_results }}"
+    msg: "Successfully installed PyPI MCP server package: {{ common_pypi_package }}"
   when:
-    - common_pypi_servers | length > 0
-    - item.rc != 0
+    - common_pypi_package is defined
+    - common_pypi_install_result is defined
+    - common_pypi_install_result.rc == 0
     - ansible_verbosity >= 2
-  vars:
-    common_pypi_install_results: "{{ common_pypi_install_result.results | default([]) }}"
 
-- name: Verify PyPI MCP servers are callable via uvx
+- name: Display failed PyPI package installation
+  ansible.builtin.debug:
+    msg: "Failed to install PyPI package: {{ common_pypi_package }}"
+  when:
+    - common_pypi_package is defined
+    - common_pypi_install_result is defined
+    - common_pypi_install_result.rc != 0
+    - ansible_verbosity >= 2
+
+- name: Verify PyPI package is working
   ansible.builtin.command:
-    cmd: uvx {{ item.name }} --help
-  loop: "{{ common_pypi_servers }}"
-  when: common_pypi_servers | length > 0
+    cmd: uvx {{ common_pypi_package }} --help
+  when: common_pypi_package is defined
   register: common_pypi_verify_result
   changed_when: false
-
-- name: Assert PyPI MCP servers are working correctly
-  ansible.builtin.assert:
-    that:
-      - item.rc == 0
-    fail_msg: "PyPI MCP server '{{ item.item.name }}' failed verification - not responding to --help"
-    success_msg: "PyPI MCP server '{{ item.item.name }}' verified successfully"
-  loop: "{{ common_pypi_verify_results }}"
-  when: common_pypi_servers | length > 0
-  vars:
-    common_pypi_verify_results: "{{ common_pypi_verify_result.results | default([]) }}"

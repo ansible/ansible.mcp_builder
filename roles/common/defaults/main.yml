@@ -8,23 +8,8 @@ common_mcp_base_path: "/opt/mcp"
 # Go version to install
 common_golang_version: "1.24.4"
 
-# Go environment paths
-common_go_path: "/go"
-common_go_cache: "/tmp/go-cache"
-
 # Common MCP Server Registry - Add extra entries here that aren't defined in other roles
-common_mcp_registry:
-  - name: "mcp-hello-world"
-    type: "npm"
-    args: []
-  - name: "awslabs.iam-mcp-server"
-    type: "pypi"
-    args: []
-
-# Install flags - automatically set based on registry entries
-common_install_go: false
-common_npm_install: false
-common_pypi_install: false
+# common_mcp_registry:
 
 # System paths
 common_system_bin_path: "/usr/local/bin"

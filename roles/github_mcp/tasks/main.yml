@@ -1,6 +1,15 @@
 ---
 # GitHub MCP role tasks
 
+- name: Set binary name from registry
+  ansible.builtin.set_fact:
+    github_mcp_binary_name: "{{ github_mcp_registry[0].name }}"
+
+- name: Include install manager tasks
+  ansible.builtin.include_role:
+    name: ansible.mcp_builder.common
+    tasks_from: install_manager
+
 - name: Create GitHub MCP build directory
   ansible.builtin.file:
     path: "{{ github_mcp_build_path }}"
@@ -26,8 +35,6 @@
   become: true
   environment:
     PATH: "/usr/local/go/bin:/usr/local/bin:/usr/bin:/bin"
-    GOPATH: "{{ common_go_path }}"
-    GOCACHE: "{{ common_go_cache }}"
 
 - name: Build GitHub MCP Server binary
   ansible.builtin.command:
@@ -37,10 +44,6 @@
   become: true
   environment:
     PATH: "/usr/local/go/bin:/usr/local/bin:/usr/bin:/bin"
-    GOPATH: "{{ common_go_path }}"
-    GOCACHE: "{{ common_go_cache }}"
-    CGO_ENABLED: "0"
-    GOOS: "linux"
 
 - name: Make GitHub MCP Server binary executable
   ansible.builtin.file:
@@ -56,6 +59,34 @@
     state: absent
   become: true
 
+- name: Ensure GitHub MCP server is installed
+  ansible.builtin.command:
+    cmd: mcp_manage list | grep "{{ github_mcp_binary_name }}"
+  register: github_mcp_list_result
+  failed_when: false
+  changed_when: false
+
 - name: Display GitHub MCP server completion message
+  when: github_mcp_list_result.rc == 0
   ansible.builtin.debug:
-    msg: "GitHub MCP server installation completed successfully. Use 'mcp_manage run {{ github_mcp_binary_name }}' to run the server."
+    msg: "GitHub MCP server installation completed successfully. Use 'mcp_manage run {{ github_mcp_binary_name }}' to run the server manually."
+
+- name: Display error GitHub MCP server completion message
+  when: github_mcp_list_result.rc != 0
+  ansible.builtin.debug:
+    msg: "GitHub MCP server installation failed. Please check the logs for more information."
+
+- name: Create symlinks for Go binaries in system bin directory
+  ansible.builtin.file:
+    src: "{{ common_mcp_base_path }}/bin/{{ github_mcp_binary_name }}"
+    dest: "{{ common_go_binary_dest_path }}"
+    state: link
+    force: true
+  become: true
+  vars:
+    common_go_binary_dest_path: "{{ common_system_bin_path }}/{{ github_mcp_binary_name }}"
+
+- name: Update MCP servers manifest
+  ansible.builtin.include_role:
+    name: ansible.mcp_builder.common
+    tasks_from: generate_manifest

@@ -1,0 +1,31 @@
+---
+# Initialize installation flags
+- name: Initialize installation status flags
+  ansible.builtin.set_fact:
+    common_go_installed: "{{ common_go_installed | default(false) }}"
+    common_npm_installed: "{{ common_npm_installed | default(false) }}"
+    common_pypi_installed: "{{ common_pypi_installed | default(false) }}"
+
+- name: Get language from current role registry
+  ansible.builtin.set_fact:
+    common_current_lang: >-
+      {%- for var_name in vars.keys() -%}
+        {%- if var_name.endswith('_mcp_registry') -%}
+          {%- set var_value = vars[var_name] -%}
+          {%- if var_value is iterable and var_value is not string and var_value[0].lang is defined -%}
+            {{ var_value[0].lang }}
+      {%- endif -%}
+        {%- endif -%}
+      {%- endfor -%}
+
+- name: Include Go installation tasks
+  ansible.builtin.include_tasks: go_install.yml
+  when: common_current_lang == 'go'
+
+- name: Include npm installation tasks
+  ansible.builtin.include_tasks: npm_install.yml
+  when: common_current_lang == 'npm'
+
+- name: Include PyPI installation tasks
+  ansible.builtin.include_tasks: pypi_install.yml
+  when: common_current_lang == 'pypi'
