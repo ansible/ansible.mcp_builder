@@ -80,7 +80,7 @@
     msg: "MCP server is available. Use 'mcp_manage run {{ common_package_name }}' to run the server manually."
 
 - name: Display failure message
-  when: 
+  when:
     - common_package_name is defined
     - common_go_mcp_list_result.rc != 0
   ansible.builtin.debug:
