@@ -67,3 +67,22 @@
     mode: "0644"
   become: true
   when: common_new_manifest_entries | length > 0
+
+- name: Ensure MCP server is in the manifest
+  ansible.builtin.command:
+    cmd: mcp_manage list | grep "{{ common_package_name }}"
+  register: common_go_mcp_list_result
+  failed_when: false
+  changed_when: false
+
+- name: Display success message
+  when:
+    - common_go_mcp_list_result.rc == 0
+    - ansible_verbosity >= 2
+  ansible.builtin.debug:
+    msg: "MCP server is available. Use 'mcp_manage run {{ common_package_name }}' to run the server manually."
+
+- name: Display failure message
+  when: common_go_mcp_list_result.rc != 0
+  ansible.builtin.debug:
+    msg: "MCP server package {{ common_package_name }} was not found in the manifest. Please check the logs for more information."
