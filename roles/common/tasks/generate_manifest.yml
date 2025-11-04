@@ -1,18 +1,22 @@
 ---
 # Generate MCP servers manifest
 
-- name: Validate registry entries from install manager
+- name: Discover registries from current role
   ansible.builtin.set_fact:
     common_server_registries: >-
       {%- set registries = [] -%}
-      {%- if common_registry_entry is defined and common_registry_entry | length > 0 -%}
-        {%- for server in common_registry_entry -%}
-          {%- if server is mapping and server.name is defined and server.type is defined -%}
-            {%- set _ = registries.append(server) -%}
+      {%- for var_name in vars.keys() -%}
+        {%- if var_name.endswith('_mcp_registry') -%}
+          {%- set var_value = vars[var_name] -%}
+          {%- if var_value is iterable and var_value is not string -%}
+            {%- for server in var_value -%}
+              {%- if server is mapping and server.name is defined and server.type is defined -%}
+                {%- set _ = registries.append(server) -%}
+              {%- endif -%}
+            {%- endfor -%}
           {%- endif -%}
-        {%- endfor -%}
-      {%- endif -%}
-      {{ registries }}
+        {%- endif -%}
+      {%- endfor -%}   {{ registries }}
 
 - name: Assign paths to registry entries
   ansible.builtin.include_tasks: assign_registry_paths.yml

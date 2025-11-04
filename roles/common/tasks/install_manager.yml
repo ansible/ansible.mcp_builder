@@ -21,14 +21,14 @@
 - name: Set language from registry entry
   ansible.builtin.set_fact:
     common_current_lang: "{{ common_registry_entry[0].lang }}"
-  when: 
+  when:
     - common_registry_entry is defined
     - common_registry_entry[0].lang is defined
 
 - name: Set package name from registry entry
   ansible.builtin.set_fact:
     common_package_name: "{{ common_registry_entry[0].name }}"
-  when: 
+  when:
     - common_registry_entry is defined
 
 - name: Include Go installation tasks
