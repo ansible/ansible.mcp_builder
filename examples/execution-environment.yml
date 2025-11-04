@@ -11,18 +11,13 @@ options:
   package_manager_path: /usr/bin/microdnf
 
 additional_build_files:
-  - src: /home/ali/code/mcp-builder # <replace with local path to your ansible.mcp-builder clone>
+  - src: /home/ali/code/mcp-builder # <FOR LOCAL DEVELOPMENT - local path to ansible.mcp-builder clone>
     dest: ansible.mcp_builder
-  - src: /home/ali/code/ansible.mcp # <replace with local path to your ansible.mcp clone>
-    dest: ansible.mcp
 
 additional_build_steps:
   prepend_galaxy: |
     COPY _build/ansible.mcp_builder /tmp/ansible.mcp_builder
-    COPY _build/ansible.mcp /tmp/ansible.mcp
   append_galaxy: |
     RUN rm -rf /tmp/ansible.mcp_builder
-  append_builder: |
-    RUN ansible-playbook ansible.mcp_builder.install_mcp
   append_final: |
-    COPY --from=builder /opt/mcp /opt/mcp
+    RUN ansible-playbook ansible.mcp_builder.install_mcp -e mcp_servers=github_mcp
