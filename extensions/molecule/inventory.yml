@@ -5,6 +5,7 @@ all:
     x_mcp_registry:
       - name: mcp_one
         type: stdio
+        lang: pypi  # Add required lang field
         path: /path/to/mcp/one
         args:
           - "--stdio"

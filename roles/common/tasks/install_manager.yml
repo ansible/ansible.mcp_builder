@@ -21,21 +21,30 @@
 - name: Set language from registry entry
   ansible.builtin.set_fact:
     common_current_lang: "{{ common_registry_entry[0].lang }}"
-  when: common_registry_entry | length > 0
+  when: 
+    - common_registry_entry is defined
+    - common_registry_entry[0].lang is defined
 
 - name: Set package name from registry entry
   ansible.builtin.set_fact:
     common_package_name: "{{ common_registry_entry[0].name }}"
-  when: common_registry_entry | length > 0
+  when: 
+    - common_registry_entry is defined
 
 - name: Include Go installation tasks
   ansible.builtin.include_tasks: go_install.yml
-  when: common_current_lang == 'go'
+  when:
+    - common_current_lang == 'go'
+    - common_do_installation | default(true)
 
 - name: Include npm installation tasks
   ansible.builtin.include_tasks: npm_install.yml
-  when: common_current_lang == 'npm'
+  when:
+    - common_current_lang == 'npm'
+    - common_do_installation | default(true)
 
 - name: Include PyPI installation tasks
   ansible.builtin.include_tasks: pypi_install.yml
-  when: common_current_lang == 'pypi'
+  when:
+    - common_current_lang == 'pypi'
+    - common_do_installation | default(true)

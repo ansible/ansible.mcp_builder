@@ -3,13 +3,35 @@
   hosts: localhost
   connection: local
   gather_facts: false
+  vars:
+    # Bypass actual installation but still run install_manager logic
+    common_do_installation: false
   tasks:
-    - name: Create mcpservers.json file
-      ansible.builtin.include_role:
-        name: ansible.mcp_builder.common
-        tasks_from: generate_manifest.yml
+    - name: Process first MCP role (x_mcp_registry)
+      block:
+        - name: Run install manager for x_mcp_registry
+          ansible.builtin.include_role:
+            name: ansible.mcp_builder.common
+            tasks_from: install_manager
+
+        - name: Generate manifest for x_mcp_registry
+          ansible.builtin.include_role:
+            name: ansible.mcp_builder.common
+            tasks_from: generate_manifest
+
+    - name: Process second MCP role (y_mcp_registry)  
+      block:
+        - name: Run install manager for y_mcp_registry
+          ansible.builtin.include_role:
+            name: ansible.mcp_builder.common
+            tasks_from: install_manager
+
+        - name: Generate manifest for y_mcp_registry
+          ansible.builtin.include_role:
+            name: ansible.mcp_builder.common
+            tasks_from: generate_manifest
 
     - name: Create mcpmanage script
       ansible.builtin.include_role:
         name: ansible.mcp_builder.common
-        tasks_from: generate_management.yml
+        tasks_from: generate_management
