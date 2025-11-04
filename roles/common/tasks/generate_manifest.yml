@@ -1,22 +1,17 @@
 ---
 # Generate MCP servers manifest
 
-- name: Discover registries from current role
+- name: Validate registry entries from install manager
   ansible.builtin.set_fact:
     common_server_registries: >-
       {%- set registries = [] -%}
-      {%- for var_name in vars.keys() -%}
-        {%- if var_name.endswith('_mcp_registry') -%}
-          {%- set var_value = vars[var_name] -%}
-          {%- if var_value is iterable and var_value is not string -%}
-            {%- for server in var_value -%}
-              {%- if server is mapping and server.name is defined and server.type is defined -%}
-                {%- set _ = registries.append(server) -%}
-              {%- endif -%}
-            {%- endfor -%}
+      {%- if common_registry_entry is defined and common_registry_entry | length > 0 -%}
+        {%- for server in common_registry_entry -%}
+          {%- if server is mapping and server.name is defined and server.type is defined -%}
+            {%- set _ = registries.append(server) -%}
           {%- endif -%}
-        {%- endif -%}
-      {%- endfor -%}
+        {%- endfor -%}
+      {%- endif -%}
       {{ registries }}
 
 - name: Assign paths to registry entries
@@ -74,15 +69,19 @@
   register: common_go_mcp_list_result
   failed_when: false
   changed_when: false
+  when: common_package_name is defined
 
 - name: Display success message
   when:
+    - common_package_name is defined
     - common_go_mcp_list_result.rc == 0
     - ansible_verbosity >= 2
   ansible.builtin.debug:
     msg: "MCP server is available. Use 'mcp_manage run {{ common_package_name }}' to run the server manually."
 
 - name: Display failure message
-  when: common_go_mcp_list_result.rc != 0
+  when: 
+    - common_package_name is defined
+    - common_go_mcp_list_result.rc != 0
   ansible.builtin.debug:
     msg: "MCP server package {{ common_package_name }} was not found in the manifest. Please check the logs for more information."
