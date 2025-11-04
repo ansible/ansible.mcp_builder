@@ -1,0 +1,4 @@
+---
+minor_changes:
+  - Generalize Go build details to use the common role's build details.
+  - Simplify jinja parsing during installation.

@@ -127,49 +127,46 @@
   ansible.builtin.set_fact:
     common_pypi_installed: true
 
-- name: Get PyPI package name from current role registry (element 0)
-  ansible.builtin.set_fact:
-    common_pypi_package: >-
-      {%- for var_name in vars.keys() -%}
-        {%- if var_name.endswith('_mcp_registry') -%}
-          {%- set var_value = vars[var_name] -%}
-          {%- if var_value is iterable and var_value is not string and var_value[0].lang == 'pypi' -%}
-            {{ var_value[0].name }}
-      {%- endif -%}
-        {%- endif -%}
-      {%- endfor -%}
-
 - name: Install PyPI MCP server package
   ansible.builtin.command:
-    cmd: uv tool install {{ common_pypi_package }}
-
+    cmd: uv tool install {{ common_package_name }}
   register: common_pypi_install_result
   failed_when: false
   changed_when: common_pypi_install_result.rc == 0
-  when:
-    - common_pypi_package is defined
 
 - name: Display successfully installed PyPI package
   ansible.builtin.debug:
-    msg: "Successfully installed PyPI MCP server package: {{ common_pypi_package }}"
+    msg: "Successfully installed PyPI MCP server package: {{ common_package_name }}"
   when:
-    - common_pypi_package is defined
     - common_pypi_install_result is defined
     - common_pypi_install_result.rc == 0
     - ansible_verbosity >= 2
 
 - name: Display failed PyPI package installation
   ansible.builtin.debug:
-    msg: "Failed to install PyPI package: {{ common_pypi_package }}"
+    msg: "Failed to install PyPI package: {{ common_package_name }}"
   when:
-    - common_pypi_package is defined
     - common_pypi_install_result is defined
     - common_pypi_install_result.rc != 0
     - ansible_verbosity >= 2
 
 - name: Verify PyPI package is working
   ansible.builtin.command:
-    cmd: uvx {{ common_pypi_package }} --help
-  when: common_pypi_package is defined
+    cmd: uvx {{ common_package_name }} --help
   register: common_pypi_verify_result
   changed_when: false
+
+- name: Display successful PyPI package access message
+  ansible.builtin.debug:
+    msg: "Successfully accessed PyPI package via uvx: {{ common_package_name }}"
+  when:
+    - common_pypi_verify_result is defined
+    - common_pypi_verify_result.rc == 0
+    - ansible_verbosity >= 2
+
+- name: Display failed PyPI package access message
+  ansible.builtin.debug:
+    msg: "Failed to access PyPI package via uvx: {{ common_package_name }}"
+  when:
+    - common_pypi_verify_result is defined
+    - common_pypi_verify_result.rc != 0

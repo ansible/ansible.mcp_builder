@@ -37,70 +37,65 @@
     fail_msg: "NPM installation verification failed - command 'npm --version' did not work"
     success_msg: "NPM {{ common_npm_version_output.stdout }} verified successfully"
 
-- name: Get npm package name from current role registry (element 0)
-  ansible.builtin.set_fact:
-    common_npm_package: >-
-      {%- for var_name in vars.keys() -%}
-        {%- if var_name.endswith('_mcp_registry') -%}
-          {%- set var_value = vars[var_name] -%}
-          {%- if var_value is iterable and var_value is not string and var_value[0].lang == 'npm' -%}
-            {{ var_value[0].name }}
-      {%- endif -%}
-        {%- endif -%}
-      {%- endfor -%}
-
 - name: Create MCP servers directory
   ansible.builtin.file:
     path: "{{ common_mcp_base_path }}/npm_installs"
     state: directory
     mode: "0755"
-  when: common_npm_package is defined
 
 - name: Initialize package.json for MCP servers
   ansible.builtin.command:
     cmd: npm init -y
     chdir: "{{ common_mcp_base_path }}/npm_installs"
     creates: "{{ common_mcp_base_path }}/npm_installs/package.json"
-  when: common_npm_package is defined
 
 - name: Check if npm package is already installed
   ansible.builtin.stat:
-    path: "{{ common_mcp_base_path }}/npm_installs/node_modules/{{ common_npm_package }}"
+    path: "{{ common_mcp_base_path }}/npm_installs/node_modules/{{ common_package_name }}"
   register: common_npm_package_check
-  when: common_npm_package is defined
 
 - name: Install npm package
   ansible.builtin.command:
-    cmd: npm install {{ common_npm_package }}
+    cmd: npm install {{ common_package_name }}
     chdir: "{{ common_mcp_base_path }}/npm_installs"
   register: common_npm_install_result
   failed_when: false
   changed_when: common_npm_install_result.rc == 0
   when:
-    - common_npm_package is defined
     - not common_npm_package_check.stat.exists
 
 - name: Display successfully installed npm package
   ansible.builtin.debug:
-    msg: "Successfully installed npm MCP package: {{ common_npm_package }}"
+    msg: "Successfully installed npm MCP package: {{ common_package_name }}"
   when:
-    - common_npm_package is defined
     - common_npm_install_result is defined
     - common_npm_install_result.rc == 0
     - ansible_verbosity >= 2
 
 - name: Display failed npm package installation
   ansible.builtin.debug:
-    msg: "Failed to install npm package: {{ common_npm_package }}"
+    msg: "Failed to install npm package: {{ common_package_name }}"
   when:
-    - common_npm_package is defined
     - common_npm_install_result is defined
     - common_npm_install_result.rc != 0
-    - ansible_verbosity >= 2
 
-- name: Verify npm package is accessible
+- name: Access npm package
   ansible.builtin.command:
-    cmd: npx --prefix {{ common_mcp_base_path }}/npm_installs {{ common_npm_package }} --help
-  when: common_npm_package is defined
+    cmd: npx --prefix {{ common_mcp_base_path }}/npm_installs {{ common_package_name }} --help
   register: common_npm_verify_result
   changed_when: false
+
+- name: Display successful npm package access message
+  ansible.builtin.debug:
+    msg: "Successfully accessed npm package via npx: {{ common_package_name }}"
+  when:
+    - common_npm_verify_result is defined
+    - common_npm_verify_result.rc == 0
+    - ansible_verbosity >= 2
+
+- name: Display failed npm package access message
+  ansible.builtin.debug:
+    msg: "Failed to access npm package via npx: {{ common_package_name }}"
+  when:
+    - common_npm_verify_result is defined
+    - common_npm_verify_result.rc != 0

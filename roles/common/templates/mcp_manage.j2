@@ -93,7 +93,12 @@ run_server() {
     echo "----------------------------------------"
 
     # Execute directly - no background, no PID files, no logs
-    exec $path "$default_args" "$@"
+    # Handle empty args properly - don't pass empty quoted string
+    if [[ -n "$default_args" ]]; then
+        exec $path $default_args "$@"
+    else
+        exec $path "$@"
+    fi
 }
 
 test() {
