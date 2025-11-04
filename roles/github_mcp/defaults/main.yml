@@ -2,9 +2,13 @@
 # Default variables for github_mcp role
 # Users can override these in their playbooks or group_vars
 
-# GitHub MCP Server repository details
-github_mcp_repo: "https://github.com/github/github-mcp-server.git"
-github_mcp_branch: "main"
+# Go build details
+# Using standard naming convention: {role_name}_build_details
+
+github_mcp_build_details:
+  - source_repo: "https://github.com/github/github-mcp-server.git"
+    source_repo_branch: "main"
+    build_path: "github/build"
 
 # Pre-register this MCP server in the global registry so common role can detect dependencies
 # Using standard naming convention: {role_name}_mcp_registry

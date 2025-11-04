@@ -6,17 +6,27 @@
     common_npm_installed: "{{ common_npm_installed | default(false) }}"
     common_pypi_installed: "{{ common_pypi_installed | default(false) }}"
 
-- name: Get language from current role registry
+- name: Get registry entry from current role
   ansible.builtin.set_fact:
-    common_current_lang: >-
+    common_registry_entry: >-
       {%- for var_name in vars.keys() -%}
         {%- if var_name.endswith('_mcp_registry') -%}
           {%- set var_value = vars[var_name] -%}
-          {%- if var_value is iterable and var_value is not string and var_value[0].lang is defined -%}
-            {{ var_value[0].lang }}
+          {%- if var_value is iterable and var_value is not string -%}
+            {{ var_value }}
       {%- endif -%}
         {%- endif -%}
       {%- endfor -%}
+
+- name: Set language from registry entry
+  ansible.builtin.set_fact:
+    common_current_lang: "{{ common_registry_entry[0].lang }}"
+  when: common_registry_entry | length > 0
+
+- name: Set package name from registry entry
+  ansible.builtin.set_fact:
+    common_package_name: "{{ common_registry_entry[0].name }}"
+  when: common_registry_entry | length > 0
 
 - name: Include Go installation tasks
   ansible.builtin.include_tasks: go_install.yml
