@@ -16,7 +16,8 @@
             {%- endfor -%}
           {%- endif -%}
         {%- endif -%}
-      {%- endfor -%}   {{ registries }}
+      {%- endfor -%}
+      {{ registries }}
 
 - name: Assign paths to registry entries
   ansible.builtin.include_tasks: assign_registry_paths.yml
