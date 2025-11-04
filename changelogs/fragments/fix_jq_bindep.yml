@@ -1,0 +1,3 @@
+---
+bugfixes:
+  - Move jq dependency to bindep.txt.

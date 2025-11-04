@@ -1,10 +1,5 @@
 ---
 # Common role tasks - Set up generic MCP build environment
-- name: Install jq for JSON processing
-  ansible.builtin.package:
-    name: jq
-    state: present
-  become: true
 
 - name: Create unified MCP bin directory
   ansible.builtin.file:

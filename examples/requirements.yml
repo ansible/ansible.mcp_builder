@@ -4,5 +4,5 @@ collections:
     source: /tmp/ansible.mcp_builder
     type: dir
   - name: ansible.mcp
-    source: /tmp/ansible.mcp
-    type: dir
+    source: https://github.com/ansible-collections/ansible.mcp.git
+    type: git
