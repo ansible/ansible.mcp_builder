@@ -99,3 +99,10 @@
   when:
     - common_npm_verify_result is defined
     - common_npm_verify_result.rc != 0
+
+# Clean up
+
+- name: Clean npm cache (created during package install)
+  ansible.builtin.command: npm cache clean --force
+  failed_when: false
+  changed_when: false
