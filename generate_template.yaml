@@ -25,11 +25,12 @@
             'name': item,
             'registry': lookup('vars', item + '_registry') | zip(lookup('vars', item + '_build_details')),
           }]) }}
+        mcp_extension_dir: "{{ lookup('env', 'PWD') }}/extensions/mcp"
       loop: "{{ mcp_roles }}"
 
     - name: Create destination directories
       ansible.builtin.file:
-        dest: "{{ lookup('env', 'PWD') }}/extensions/mcp/{{ item.name }}/template_rhdh/"
+        dest: "{{ mcp_extension_dir }}/{{ item.name }}"
         state: directory
         mode: "0755"
       loop: "{{ registries }}"
@@ -37,7 +38,7 @@
     - name: Template each registry
       ansible.builtin.template:
         src: server.yaml.j2
-        dest: "{{ lookup('env', 'PWD') }}/extensions/mcp/{{ item[0].name }}/template_rhdh/{{ item[1][0].name }}.yaml"
+        dest: "{{ mcp_extension_dir }}/{{ item[0].name }}/{{ item[1][0].name }}.yaml"
         mode: "0644"
         lstrip_blocks: true
-      loop: "{{ registries|subelements('registry') }}"
+      loop: "{{ registries | subelements('registry') }}"

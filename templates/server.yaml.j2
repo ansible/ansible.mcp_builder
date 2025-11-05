@@ -1,0 +1,9 @@
+---
+repository:
+  {% for key, value in item[1][0].items() %}
+  {{key}}: {{ value }}
+  {% endfor %}
+variables:
+  {% for key, value in item[1][1].items() %}
+  {{key}}: {{ value }}
+  {% endfor %}
