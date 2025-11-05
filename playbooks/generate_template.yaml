@@ -20,19 +20,16 @@
 
     - name: Zip registry with details
       ansible.builtin.set_fact:
-        {
-          "{{ item }}": "{{ lookup('vars', item + '_registry') | zip(lookup('vars', item + '_build_details')) }}",
-        }
-      loop: "{{mcp_roles }}"
-
-    - name: Combine role registries
-      ansible.builtin.set_fact:
-        registries: "{{ registries | default([]) | union(lookup('vars', item)) }}"
+        registries: >-
+          {{ registries | default([]) | union([{
+            'name': item,
+            'registry': lookup('vars', item + '_registry') | zip(lookup('vars', item + '_build_details')),
+          }]) }}
       loop: "{{ mcp_roles }}"
 
     - name: Create destination directories
       ansible.builtin.file:
-        dest: "{{ lookup('env', 'PWD') }}/extensions/mcp/{{ item[0].name }}/template_rhdh/"
+        dest: "{{ lookup('env', 'PWD') }}/extensions/mcp/{{ item.name }}/template_rhdh/"
         state: directory
         mode: "0755"
       loop: "{{ registries }}"
@@ -40,7 +37,7 @@
     - name: Template each registry
       ansible.builtin.template:
         src: server.yaml.j2
-        dest: "{{ lookup('env', 'PWD') }}/extensions/mcp/{{ item[0].name }}/template_rhdh/server.yaml"
+        dest: "{{ lookup('env', 'PWD') }}/extensions/mcp/{{ item[0].name }}/template_rhdh/{{ item[1][0].name }}.yaml"
         mode: "0644"
         lstrip_blocks: true
-      loop: "{{ registries }}"
+      loop: "{{ registries|subelements('registry') }}"

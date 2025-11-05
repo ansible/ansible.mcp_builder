@@ -2,9 +2,9 @@
 apiVersion: scaffolder.backstage.io/v1beta3
 kind: Template
 metadata:
-  name: {{ item[0].name }}
-  title: {{ item[0].name }}
-  description: {{ item[0].description }}
+  name: {{ item[1][0].name }}
+  title: {{ item[1][0].name }}
+  description: {{ item[1][0].description }}
   namespace: default
   tags:
     - aap-operations
@@ -14,7 +14,7 @@ spec:
   type: service
   parameters:
     - title: Prompts
-      description: {{ item[0].description }}
+      description: {{ item[1][0].description }}
       required:
         - token
         - inventory
@@ -48,9 +48,9 @@ spec:
           ui:field: AAPResourcePicker
           resource: credentials
     - title: Survey
-      description: {{ item[0].description }}
+      description: {{ item[1][0].description }}
       properties:
-        {% for key, value in item[1].items() %}
+        {% for key, value in item[1][1].items() %}
         {{ key }}:
           title: {{ key }}
           type: string
