@@ -2,10 +2,9 @@
 apiVersion: scaffolder.backstage.io/v1beta3
 kind: Template
 metadata:
-  name: github_mcp
-  title: GitHub MCP Server
-  description: >-
-    GitHub MCP server - Access GitHub repositories, issues, and pull requests.
+  name: {{ item[0].name }}
+  title: {{ item[0].name }}
+  description: {{ item[0].description }}
   namespace: default
   tags:
     - aap-operations
@@ -15,8 +14,7 @@ spec:
   type: service
   parameters:
     - title: Prompts
-      description: >-
-        GitHub MCP server - Access GitHub repositories, issues, and pull requests.
+      description: {{ item[0].description }}
       required:
         - token
         - inventory
@@ -50,21 +48,17 @@ spec:
           ui:field: AAPResourcePicker
           resource: credentials
     - title: Survey
-      description: >-
-        GitHub MCP server - Access GitHub repositories, issues, and pull requests.
+      description: {{ item[0].description }}
       properties:
-        github_mcp_repo:
-          title: GitHub Repository URL
+        {% for key, value in item[1].items() %}
+        {{ key }}:
+          title: {{ key }}
           type: string
-          description: URL of the GitHub repository for installing from
+          description: {{ key }}
           ui:options:
             rows: 5
-        github_mcp_branch:
-          title: GitHub Repository Branch
-          type: string
-          description: Branch of the GitHub repository for installing from
-          ui:options:
-            rows: 5
+        {% endfor %}
+{% raw %}
   steps:
     - id: launch-job
       name: Launch Network Operations / Create Full Network Backup
@@ -87,3 +81,4 @@ spec:
     links:
       - title: View in RH AAP
         url: ${{ steps['launch-job'].output.data.url }}
+{% endraw %}
