@@ -8,7 +8,7 @@
       {{
         (mcp_servers.split(',') if mcp_servers is defined and ',' in mcp_servers
          else [mcp_servers] if mcp_servers is defined and mcp_servers is not none
-         and mcp_servers is not empty and mcp_servers != ''
+         and mcp_servers | length > 0 and mcp_servers != ''
          else []) | list
       }}
   when: mcp_servers is defined

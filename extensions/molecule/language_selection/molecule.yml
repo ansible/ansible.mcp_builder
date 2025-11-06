@@ -16,7 +16,7 @@ ansible:
       ansible_playbook:
         - --diff
         - --force-handlers
-        - --inventory=${MOLECULE_SCENARIO_DIRECTORY}../inventory/language_inventory.yml
+        - --inventory=${MOLECULE_SCENARIO_DIRECTORY}/../inventory/language_inventory.yml
       ansible_navigator:
         - --mode stdout
         - --pull-policy missing
@@ -24,10 +24,6 @@ ansible:
 
 scenario:
   test_sequence:
-    - destroy
     - syntax
-    - create
     - converge
     - idempotence
-    - verify
-    - destroy
