@@ -170,3 +170,15 @@
   when:
     - common_pypi_verify_result is defined
     - common_pypi_verify_result.rc != 0
+
+# Clean up
+
+- name: Remove uv installer script
+  ansible.builtin.file:
+    path: /tmp/uv-install.sh
+    state: absent
+
+- name: Clean uv cache (created during installation)
+  ansible.builtin.file:
+    path: "{{ lookup('env', 'HOME') }}/.cache/uv"
+    state: absent

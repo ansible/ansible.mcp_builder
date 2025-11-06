@@ -120,6 +120,27 @@
     state: absent
   become: true
 
+# Clean up
+
+- name: Remove Go toolchain
+  ansible.builtin.file:
+    path: /usr/local/go
+    state: absent
+  become: true
+
+- name: Remove Go from PATH in environment
+  ansible.builtin.lineinfile:
+    path: /etc/environment
+    regex: '^PATH.*go/bin.*'
+    state: absent
+  become: true
+
+- name: Remove Go installer tarball
+  ansible.builtin.file:
+    path: /tmp/go*.tar.gz
+    state: absent
+  become: true
+
 - name: Create symlinks for Go binaries in system bin directory
   ansible.builtin.file:
     src: "{{ common_mcp_base_path }}/bin/{{ common_package_name }}"
