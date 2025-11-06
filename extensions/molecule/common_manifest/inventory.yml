@@ -12,4 +12,6 @@ all:
     y_mcp_registry:
       - name: mcp_two
         type: http
+        lang: npm
         path: "https://path.to/mcp/two"
+        args: []

@@ -1,5 +1,5 @@
 ---
-# Dependency management (download roles/collections)
+# Test language selection without actual installation
 dependency:
   name: galaxy
   options:
@@ -40,3 +40,4 @@ scenario:
     - idempotence
     - verify
     - destroy
+

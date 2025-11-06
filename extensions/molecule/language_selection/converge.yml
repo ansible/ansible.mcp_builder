@@ -1,0 +1,20 @@
+---
+- name: Test Language Selection
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    # Skip actual installation but test language logic
+    common_do_installation: false
+    
+  tasks:
+      - name: Run install_manager for PyPI (no actual install)
+        ansible.builtin.include_role:
+          name: ansible.mcp_builder.common
+          tasks_from: install_manager
+
+      - name: Verify PyPI language was detected
+        ansible.builtin.assert:
+          that:
+            - common_current_lang == "pypi"
+            - common_package_name == "mcp_one"

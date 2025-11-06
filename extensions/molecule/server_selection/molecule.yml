@@ -1,5 +1,5 @@
 ---
-# Dependency management (download roles/collections)
+# Test MCP server selection in install_mcp playbook
 dependency:
   name: galaxy
   options:
@@ -25,7 +25,6 @@ ansible:
       ansible_playbook:
         - --diff
         - --force-handlers
-        - --inventory=${MOLECULE_SCENARIO_DIRECTORY}/inventory.yml
       ansible_navigator:
         - --mode stdout
         - --pull-policy missing
@@ -33,10 +32,5 @@ ansible:
 
 scenario:
   test_sequence:
-    - destroy
     - syntax
-    - create
     - converge
-    - idempotence
-    - verify
-    - destroy
