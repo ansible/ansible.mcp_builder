@@ -1,12 +1,3 @@
----
-# Test language selection without actual installation
-dependency:
-  name: galaxy
-  options:
-    ignore-certs: false
-    ignore-errors: false
-    role-file: requirements.yml
-    requirements-file: requirements.yml
 
 ansible:
   cfg:
@@ -25,7 +16,7 @@ ansible:
       ansible_playbook:
         - --diff
         - --force-handlers
-        - --inventory=${MOLECULE_SCENARIO_DIRECTORY}/inventory.yml
+        - --inventory=${MOLECULE_SCENARIO_DIRECTORY}../inventory/language_inventory.yml
       ansible_navigator:
         - --mode stdout
         - --pull-policy missing
@@ -40,4 +31,3 @@ scenario:
     - idempotence
     - verify
     - destroy
-

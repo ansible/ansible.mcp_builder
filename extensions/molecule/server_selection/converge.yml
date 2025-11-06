@@ -10,7 +10,7 @@
       ansible.builtin.include_role:
         name: ansible.mcp_builder.common
         tasks_from: parse_mcp_servers
-      
+
     - name: Verify expected server name (single server) # In converge due to variable scope
       ansible.builtin.assert:
         that:
@@ -24,7 +24,7 @@
       ansible.builtin.include_role:
         name: ansible.mcp_builder.common
         tasks_from: parse_mcp_servers
-      
+
     - name: Verify expected server names (multiple servers) # In converge due to variable scope
       ansible.builtin.assert:
         that:
