@@ -12,10 +12,8 @@
     - name: Load MCP roles to gain access to defaults
       ansible.builtin.include_role:
         name: "{{ item }}"
-        tasks_from: noop # don't know why this doesn't do anything
+        tasks_from: noop
         public: true
-        apply:
-          ignore_errors: true # there should be a better way of doing this
       loop: "{{ mcp_roles }}"
 
     - name: Zip registry with details
