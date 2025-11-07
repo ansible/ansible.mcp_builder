@@ -23,7 +23,7 @@
             'name': item,
             'registry': lookup('vars', item + '_registry') | zip(lookup('vars', item + '_build_details')),
           }]) }}
-        mcp_extension_dir: "{{ lookup('env', 'PWD') }}/extensions/mcp"
+        mcp_extension_dir: "{{ playbook_dir }}/extensions/mcp"
       loop: "{{ mcp_roles }}"
 
     - name: Create destination directories
