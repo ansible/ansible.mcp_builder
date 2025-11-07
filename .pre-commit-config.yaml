@@ -20,7 +20,7 @@ repos:
     rev: "v3.0.0"
     hooks:
       - id: prettier
-        entry: env CI=1 bash -c "prettier --list-different . || ec=$? && prettier --loglevel=error --write . && exit $ec"
+        entry: env CI=1 bash -c "prettier --list-different . || ec=$? && prettier --log-level=error --write . && exit $ec"
         pass_filenames: false
         args: []
         additional_dependencies:

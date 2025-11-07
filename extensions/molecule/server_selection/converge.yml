@@ -1,0 +1,33 @@
+---
+- name: Converge
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  tasks:
+    - name: Parse mcp_servers (single server)
+      vars:
+        mcp_servers: "github_mcp"
+      ansible.builtin.include_role:
+        name: ansible.mcp_builder.common
+        tasks_from: parse_mcp_servers
+
+    - name: Verify expected server name (single server) # In converge due to variable scope
+      ansible.builtin.assert:
+        that:
+          - common_mcp_roles is defined
+          - common_mcp_roles | length == 1
+          - common_mcp_roles == ["github_mcp"]
+
+    - name: Parse mcp_servers (multiple servers)
+      vars:
+        mcp_servers: "github_mcp,aws_iam_mcp"
+      ansible.builtin.include_role:
+        name: ansible.mcp_builder.common
+        tasks_from: parse_mcp_servers
+
+    - name: Verify expected server names (multiple servers) # In converge due to variable scope
+      ansible.builtin.assert:
+        that:
+          - common_mcp_roles is defined
+          - common_mcp_roles | length == 2
+          - common_mcp_roles == ["github_mcp", "aws_iam_mcp"]

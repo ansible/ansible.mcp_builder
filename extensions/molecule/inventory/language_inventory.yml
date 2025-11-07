@@ -1,0 +1,12 @@
+# Language test specific inventory file
+# Simulates single registry variable availability
+---
+all:
+  vars:
+    x_mcp_registry:
+      - name: mcp_one
+        type: stdio
+        lang: pypi
+        path: /path/to/mcp/one
+        args:
+          - "--stdio"

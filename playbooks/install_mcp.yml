@@ -4,15 +4,13 @@
   connection: local
   gather_facts: false
 
-  vars:
-    # Convert comma-separated or JSON input to list, require explicit server selection
-    mcp_roles: "{{ (mcp_servers.split(',') if mcp_servers is defined and ',' in mcp_servers else [mcp_servers] if mcp_servers is defined else []) | list }}"
-
-    # Note: If no servers specified or invalid server names provided,
-    # Ansible will fail naturally when trying to include non-existent roles
-
   tasks:
+    - name: Parse mcp_servers input
+      ansible.builtin.include_role:
+        name: ansible.mcp_builder.common
+        tasks_from: parse_mcp_servers
     - name: Install selected MCP providers
       ansible.builtin.include_role:
         name: "ansible.mcp_builder.{{ item }}"
-      loop: "{{ mcp_roles }}"
+      loop: "{{ common_mcp_roles }}"
+      when: do_installation | default(true)
