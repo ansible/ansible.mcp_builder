@@ -1,3 +1,5 @@
+# Language test specific inventory file
+# Simulates single registry variable availability
 ---
 all:
   vars:
