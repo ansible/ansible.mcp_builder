@@ -131,7 +131,7 @@
 - name: Remove Go from PATH in environment
   ansible.builtin.lineinfile:
     path: /etc/environment
-    regex: '^PATH.*go/bin.*'
+    regex: "^PATH.*go/bin.*"
     state: absent
   become: true
 

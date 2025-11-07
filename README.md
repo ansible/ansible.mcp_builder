@@ -114,7 +114,7 @@ The generated `/opt/mcp/mcpservers.json` file contains all server definitions:
 
 The `ansible.mcp_builder` role is designed to run as a step in building an EE. To select MCP servers, use the `-e` flag and `mcp_servers` variable.
 
-Servers are selected by their exact role name. E.g. `github_mcp`. 
+Servers are selected by their exact role name. E.g. `github_mcp`.
 
 ```
   append_builder: |
