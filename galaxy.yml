@@ -11,3 +11,6 @@ repository: https://github.com/ansible/mcp_builder
 issues: https://github.com/ansible/mcp_builder/issues
 tags: [ai, tools, mcp]
 version: 1.0.0
+build_ignore:
+  - .github/
+  - build/

@@ -5,10 +5,15 @@
   gather_facts: false
 
   tasks:
+    - name: Ensure base functionality
+      ansible.builtin.include_role:
+        name: ansible.mcp_builder.common
+
     - name: Parse mcp_servers input
       ansible.builtin.include_role:
         name: ansible.mcp_builder.common
         tasks_from: parse_mcp_servers
+
     - name: Install selected MCP providers
       ansible.builtin.include_role:
         name: "ansible.mcp_builder.{{ item }}"

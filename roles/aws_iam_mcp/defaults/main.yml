@@ -1,0 +1,8 @@
+---
+# AWS IAM MCP server defaults
+aws_iam_mcp_registry:
+  - name: "awslabs.iam-mcp-server"
+    type: "stdio"
+    lang: "pypi"
+    args: []
+    description: "An MCP server for comprehensive AWS Identity and Access Management (IAM) operations."
