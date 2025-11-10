@@ -1,9 +1,15 @@
 ---
-repository:
-  {% for key, value in item[1][0].items() %}
-  {{key}}: {{ value }}
+{% for registry in registries %}
+- name: {{ registry.name }}
+  servers:
+  {% for server in registry.registry %}
+    - repository:
+        {% for key, value in server[0].items() %}
+        {{key}}: {{ value }}
+        {% endfor %}
+      variables:
+        {% for key, value in server[1].items() %}
+        {{key}}: {{ value }}
+        {% endfor %}
   {% endfor %}
-variables:
-  {% for key, value in item[1][1].items() %}
-  {{key}}: {{ value }}
-  {% endfor %}
+{% endfor %}

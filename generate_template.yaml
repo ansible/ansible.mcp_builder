@@ -42,17 +42,15 @@
       failed_when: false
       loop: "{{ mcp_roles }}"
 
-    - name: Create destination directories
+    - name: Create destination directory
       ansible.builtin.file:
-        dest: "{{ mcp_extension_dir }}/{{ item.name }}"
+        dest: "{{ mcp_extension_dir }}"
         state: directory
         mode: "0755"
-      loop: "{{ registries }}"
 
     - name: Template each registry
       ansible.builtin.template:
         src: server.yaml.j2
-        dest: "{{ mcp_extension_dir }}/{{ item[0].name }}/{{ item[1][0].name }}.yaml"
+        dest: "{{ mcp_extension_dir }}/servers.yaml"
         mode: "0644"
         lstrip_blocks: true
-      loop: "{{ registries | subelements('registry') }}"
