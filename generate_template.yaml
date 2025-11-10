@@ -37,9 +37,8 @@
         registries: >-
           {{ registries | default([]) | union([{
             'name': item,
-            'registry': lookup('vars', item + '_registry') | zip(lookup('vars', item + '_build_details')),
+            'registry': lookup('vars', item + '_registry', default=[]),
           }]) }}
-      failed_when: false
       loop: "{{ mcp_roles }}"
 
     - name: Create destination directory
