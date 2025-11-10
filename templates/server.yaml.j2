@@ -1,0 +1,11 @@
+---
+{% for registry in registries if registry.registry %}
+- name: {{ registry.name }}
+  servers:
+  {% for server in registry.registry %}
+    - repository:
+        {% for key, value in server.items() %}
+        {{key}}: {{ value }}
+        {% endfor %}
+  {% endfor %}
+{% endfor %}

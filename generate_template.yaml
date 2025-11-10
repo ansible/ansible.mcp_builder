@@ -1,0 +1,55 @@
+# vi: ft=yaml.ansible
+---
+- name: Generate portal template files
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  tasks:
+    - name: Collect roles
+      ansible.builtin.find:
+        file_type: directory
+        paths:
+          - "{{ playbook_dir }}/roles"
+      register: role_paths
+
+    - name: Set role names
+      ansible.builtin.set_fact:
+        mcp_roles: "{{ role_paths.files | map(attribute='path') | map('basename') }}"
+        mcp_extension_dir: "{{ playbook_dir }}/extensions/mcp"
+
+    - name: Create noop task file
+      ansible.builtin.copy:
+        content: "---\n# Do nothing\n"
+        dest: "roles/{{ item }}/tasks/noop.yaml"
+        mode: "0644"
+      loop: "{{ mcp_roles }}"
+
+    - name: Load MCP roles to gain access to defaults
+      ansible.builtin.include_role:
+        name: "{{ item }}"
+        tasks_from: noop
+        public: true
+      loop: "{{ mcp_roles }}"
+
+    - name: Zip registry with details
+      ansible.builtin.set_fact:
+        registries: >-
+          {{ registries | default([]) | union([{
+            'name': item,
+            'registry': lookup('vars', item + '_registry', default=[]),
+          }]) }}
+      loop: "{{ mcp_roles }}"
+
+    - name: Create destination directory
+      ansible.builtin.file:
+        dest: "{{ mcp_extension_dir }}"
+        state: directory
+        mode: "0755"
+
+    - name: Template each registry
+      ansible.builtin.template:
+        src: server.yaml.j2
+        dest: "{{ mcp_extension_dir }}/servers.yaml"
+        mode: "0644"
+        lstrip_blocks: true

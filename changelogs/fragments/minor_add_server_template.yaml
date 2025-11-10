@@ -1,0 +1,3 @@
+---
+minor_changes:
+  - Add playbook to generate template files based off role defaults for other tools to know what MCP servers a collection supports.
