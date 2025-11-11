@@ -2,7 +2,6 @@
 .*/
 coverage/
 extensions/mcp
-extensions/mcp/**
 
 # Environments
 .env

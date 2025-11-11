@@ -33,7 +33,6 @@ repos:
         entry: env CI=1 bash -c "prettier --list-different . || ec=$? && prettier --log-level=error --write . && exit $ec"
         pass_filenames: false
         args: []
-        exclude: ^extensions/mcp/servers\.yaml$
         additional_dependencies:
           - prettier
           - prettier-plugin-toml
