@@ -4,121 +4,120 @@
 - name: Get Go build details from role variables
   ansible.builtin.set_fact:
     common_go_build_details: >-
-      {%- for var_name in vars.keys() -%}
-        {%- if var_name.endswith('_build_details') -%}
-          {%- set var_value = vars[var_name] -%}
-          {%- if var_value is iterable and var_value is not string -%}
-            {{ var_value }}
-      {%- endif -%}
+      {%- for registry in common_registry_entry -%}
+        {%- if 'build_details' in registry.keys() -%}
+          {{ registry.build_details }}
         {%- endif -%}
       {%- endfor -%}
 
-- name: Set Go build repo from registry entry
+- name: Set Go build info from registry entry
   ansible.builtin.set_fact:
-    common_go_build_repo: "{{ common_go_build_details[0].source_repo }}"
+    common_go_build_repo: "{{ common_go_build_details.source_repo }}"
+    common_go_build_branch: "{{ common_go_build_details.source_repo_branch }}"
+    common_go_build_path: "{{ common_go_build_details.build_path }}"
   when: common_go_build_details | length > 0
 
-- name: Set Go build branch from registry entry
-  ansible.builtin.set_fact:
-    common_go_build_branch: "{{ common_go_build_details[0].source_repo_branch }}"
-  when: common_go_build_details | length > 0
-
-- name: Set Go build path from registry entry
-  ansible.builtin.set_fact:
-    common_go_build_path: "{{ common_go_build_details[0].build_path }}"
-  when: common_go_build_details | length > 0
-
-- name: Create Go installation directory
-  ansible.builtin.file:
-    path: /usr/local
-    state: directory
-    mode: "0755"
-  become: true
+- name: Install Go
   when: not common_go_installed
+  block:
+    - name: Create Go installation directory
+      ansible.builtin.file:
+        path: /usr/local
+        state: directory
+        mode: "0755"
+      become: true
 
-- name: Download and extract Go
-  ansible.builtin.unarchive:
-    src: "https://golang.org/dl/go{{ common_golang_version }}.linux-amd64.tar.gz"
-    dest: /usr/local
-    remote_src: true
-    owner: root
-    group: root
-    mode: "0755"
-    creates: /usr/local/go/bin/go
-  become: true
-  when: not common_go_installed
+    - name: Download and extract Go
+      ansible.builtin.unarchive:
+        src: "https://golang.org/dl/go{{ common_golang_version }}.linux-amd64.tar.gz"
+        dest: /usr/local
+        remote_src: true
+        owner: root
+        group: root
+        mode: "0755"
+        creates: /usr/local/go/bin/go
+      become: true
 
-- name: Set Go environment variables
-  ansible.builtin.lineinfile:
-    path: /etc/environment
-    line: "{{ go_env_item }}"
-    create: true
-    mode: "0644"
-  loop:
-    - 'PATH="/usr/local/go/bin:$PATH"'
-  loop_control:
-    loop_var: go_env_item
-  become: true
-  when: not common_go_installed
+    - name: Set Go environment variables
+      ansible.builtin.lineinfile:
+        path: /etc/environment
+        line: "{{ go_env_item }}"
+        create: true
+        mode: "0644"
+      loop:
+        - 'PATH="/usr/local/go/bin:$PATH"'
+      loop_control:
+        loop_var: go_env_item
+      become: true
 
-- name: Mark Go as installed
-  ansible.builtin.set_fact:
-    common_go_installed: true
-  when: not common_go_installed
+    - name: Mark Go as installed
+      ansible.builtin.set_fact:
+        common_go_installed: true
 
-- name: Set Go build path from registry entry
-  ansible.builtin.set_fact:
-    common_build_path: "{{ common_mcp_base_path }}/{{ common_go_build_path }}"
+- name: Build and install server
   when: common_go_build_path is defined
+  block:
+    - name: Set Go build path from registry entry
+      ansible.builtin.set_fact:
+        common_build_path: "{{ common_mcp_base_path }}/{{ common_go_build_path }}"
+        binary_full_path: "{{ common_mcp_base_path }}/bin/{{ common_package_name }}"
 
-- name: Create build directory
-  ansible.builtin.file:
-    path: "{{ common_build_path }}"
-    state: directory
-    mode: "0755"
-  become: true
+    - name: Create build directory
+      ansible.builtin.file:
+        path: "{{ common_build_path }}"
+        state: directory
+        mode: "0755"
+      become: true
 
-- name: Clone source repository
-  ansible.builtin.git:
-    repo: "{{ common_go_build_repo }}"
-    dest: "{{ common_build_path }}"
-    version: "{{ common_go_build_branch }}"
-    force: true
-  become: true
-  environment:
-    PATH: "/usr/local/go/bin:/usr/local/bin:/usr/bin:/bin"
+    - name: Clone source repository
+      ansible.builtin.git:
+        repo: "{{ common_go_build_repo }}"
+        dest: "{{ common_build_path }}"
+        version: "{{ common_go_build_branch }}"
+        force: true
+      become: true
+      environment:
+        PATH: "/usr/local/go/bin:/usr/local/bin:/usr/bin:/bin"
 
-- name: Download Go modules
-  ansible.builtin.command:
-    cmd: go mod download
-    chdir: "{{ common_build_path }}"
-    creates: "{{ common_build_path }}/go.sum"
-  become: true
-  environment:
-    PATH: "/usr/local/go/bin:/usr/local/bin:/usr/bin:/bin"
+    - name: Download Go modules
+      ansible.builtin.command:
+        cmd: go mod download
+        chdir: "{{ common_build_path }}"
+        creates: "{{ common_build_path }}/go.sum"
+      become: true
+      environment:
+        PATH: "/usr/local/go/bin:/usr/local/bin:/usr/bin:/bin"
 
-- name: Build MCP Server binary
-  ansible.builtin.command:
-    cmd: go build -ldflags="-s -w" -o "{{ common_mcp_base_path }}/bin/{{ common_package_name }}" ./cmd/{{ common_package_name }}/
-    chdir: "{{ common_build_path }}"
-    creates: "{{ common_mcp_base_path }}/bin/{{ common_package_name }}"
-  become: true
-  environment:
-    PATH: "/usr/local/go/bin:/usr/local/bin:/usr/bin:/bin"
+    - name: Build MCP Server binary
+      ansible.builtin.command:
+        cmd: go build -ldflags="-s -w" -o "{{ common_mcp_base_path }}/bin/{{ common_package_name }}" ./cmd/{{ common_package_name }}/
+        chdir: "{{ common_build_path }}"
+        creates: "{{ binary_full_path }}"
+      become: true
+      environment:
+        PATH: "/usr/local/go/bin:/usr/local/bin:/usr/bin:/bin"
 
-- name: Make MCP Server binary executable
-  ansible.builtin.file:
-    path: "{{ binary_full_path }}"
-    mode: "0755"
-  become: true
-  vars:
-    binary_full_path: "{{ common_mcp_base_path }}/bin/{{ common_package_name }}"
+    - name: Make MCP Server binary executable
+      ansible.builtin.file:
+        path: "{{ binary_full_path }}"
+        mode: "0755"
+      become: true
 
-- name: Clean up build directory
-  ansible.builtin.file:
-    path: "{{ common_build_path }}"
-    state: absent
-  become: true
+    - name: Clean up build directory
+      ansible.builtin.file:
+        path: "{{ common_build_path }}"
+        state: absent
+      become: true
+
+    - name: Create symlinks for Go binaries in system bin directory
+      ansible.builtin.file:
+        src: "{{ binary_full_path }}"
+        dest: "{{ common_go_binary_dest_path }}"
+        state: link
+        force: true
+      become: true
+      vars:
+        common_go_binary_dest_path: "{{ common_system_bin_path }}/{{ common_package_name }}"
 
 # Clean up
 
@@ -140,13 +139,3 @@
     path: /tmp/go*.tar.gz
     state: absent
   become: true
-
-- name: Create symlinks for Go binaries in system bin directory
-  ansible.builtin.file:
-    src: "{{ common_mcp_base_path }}/bin/{{ common_package_name }}"
-    dest: "{{ common_go_binary_dest_path }}"
-    state: link
-    force: true
-  become: true
-  vars:
-    common_go_binary_dest_path: "{{ common_system_bin_path }}/{{ common_package_name }}"
