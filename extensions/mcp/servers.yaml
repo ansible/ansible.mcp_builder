@@ -5,14 +5,18 @@
         name: github-mcp-server
         type: stdio
         lang: go
-        args: ['stdio']
+        args:
+          - stdio
         description: GitHub MCP Server - Access GitHub repositories, issues, and pull requests
-        build_details: {'source_repo': 'https://github.com/github/github-mcp-server.git', 'source_repo_branch': 'main', 'build_path': 'github/build'}
+        build_details:
+          source_repo: https://github.com/github/github-mcp-server.git
+          source_repo_branch: main
+          build_path: github/build
 - name: aws_iam_mcp
   servers:
     - repository:
         name: awslabs.iam-mcp-server
         type: stdio
         lang: pypi
-        args: []
+        args:
         description: An MCP server for comprehensive AWS Identity and Access Management (IAM) operations.

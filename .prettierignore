@@ -1,7 +1,6 @@
 # files we don't want prettier to ever to look into
 .*/
 coverage/
-extensions/mcp
 
 # Environments
 .env
