@@ -1,8 +1,9 @@
 ---
 # Node.js and npm installation tasks
 
-- name: Check if Node.js {{ common_nodejs_min_version }}+ is already installed
+- name: "Check if Node.js is already installed (minimum version: {{ common_nodejs_min_version }})"
   ansible.builtin.shell: |
+    set -o pipefail
     if command -v node >/dev/null 2>&1; then
       node_version=$(node --version | cut -d'v' -f2 | cut -d'.' -f1)
       if [ "$node_version" -ge {{ common_nodejs_min_version }} ]; then
@@ -16,7 +17,8 @@
   register: common_node_check
   changed_when: false
 
-- name: Install Node.js {{ common_nodejs_min_version }} from NodeSource
+- name: "Install Node.js from NodeSource (version: {{ common_nodejs_min_version }})"
+  when: common_node_check.stdout != "sufficient"
   block:
     - name: Download NodeSource setup script
       ansible.builtin.get_url:
@@ -31,7 +33,7 @@
       become: true
       changed_when: true
 
-    - name: Install Node.js {{ common_nodejs_min_version }}
+    - name: "Install Node.js package (version: {{ common_nodejs_min_version }})"
       ansible.builtin.package:
         name: nodejs
         state: present
@@ -42,7 +44,6 @@
         path: /tmp/nodesource_setup.sh
         state: absent
       become: true
-  when: common_node_check.stdout != "sufficient"
 
 - name: Verify Node.js installation
   ansible.builtin.command: node --version
