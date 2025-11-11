@@ -1,48 +1,13 @@
 ---
 # Node.js and npm installation tasks
 
-- name: Check if Node.js {{ common_nodejs_min_version }}+ is already installed
-  ansible.builtin.shell: |
-    if command -v node >/dev/null 2>&1; then
-      node_version=$(node --version | cut -d'v' -f2 | cut -d'.' -f1)
-      if [ "$node_version" -ge {{ common_nodejs_min_version }} ]; then
-        echo "sufficient"
-      else
-        echo "insufficient"
-      fi
-    else
-      echo "not_installed"
-    fi
-  register: common_node_check
-  changed_when: false
-
-- name: Install Node.js {{ common_nodejs_min_version }} from NodeSource
-  block:
-    - name: Download NodeSource setup script
-      ansible.builtin.get_url:
-        url: https://rpm.nodesource.com/setup_{{ common_nodejs_min_version }}.x
-        dest: /tmp/nodesource_setup.sh
-        mode: '0755'
-      become: true
-
-    - name: Run NodeSource setup script
-      ansible.builtin.command:
-        cmd: bash /tmp/nodesource_setup.sh
-      become: true
-      changed_when: true
-
-    - name: Install Node.js {{ common_nodejs_min_version }}
-      ansible.builtin.package:
-        name: nodejs
-        state: present
-      become: true
-
-    - name: Clean up NodeSource setup script
-      ansible.builtin.file:
-        path: /tmp/nodesource_setup.sh
-        state: absent
-      become: true
-  when: common_node_check.stdout != "sufficient"
+- name: Install Node.js and npm via system package manager
+  ansible.builtin.package:
+    name:
+      - nodejs
+      - npm
+    state: present
+  become: true
 
 - name: Verify Node.js installation
   ansible.builtin.command: node --version
@@ -119,7 +84,6 @@
     cmd: npx --prefix {{ common_mcp_base_path }}/npm_installs {{ common_package_name }} --help
   register: common_npm_verify_result
   changed_when: false
-  failed_when: false
 
 - name: Display successful npm package access message
   ansible.builtin.debug:
