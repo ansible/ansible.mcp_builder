@@ -1,0 +1,19 @@
+---
+# Azure MCP Server default details
+azure_mcp_package: "@azure/mcp"
+azure_mcp_version: "latest"
+
+azure_mcp_namespaces:
+  - "az"
+
+azure_mcp_registry:
+  - name: "azmcp"
+    type: "stdio"
+    lang: "npm"
+    package: "@azure/mcp"
+    args:
+      - "server"
+      - "start"
+      - "--namespace"
+      - "az"
+    description: "Azure MCP Server - Interact with Azure resources via Model Context Protocol"
