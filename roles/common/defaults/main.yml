@@ -8,9 +8,6 @@ common_mcp_base_path: "/opt/mcp"
 # Go version to install
 common_golang_version: "1.24.4"
 
-# Minimum Node.js version required
-common_nodejs_min_version: 20
-
 # Common MCP Server Registry - Add extra entries here that aren't defined in other roles
 # common_mcp_registry:
 
