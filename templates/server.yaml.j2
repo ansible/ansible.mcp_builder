@@ -5,7 +5,11 @@
   {% for server in registry.registry %}
     - repository:
         {% for key, value in server.items() %}
-        {{key}}: {{ value }}
+        {% if key == 'package' and value is string and value.startswith('@') %}
+        {{ key }}: "{{ value }}"
+        {% else %}
+        {{ key }}: {{ value }}
+        {% endif %}
         {% endfor %}
   {% endfor %}
 {% endfor %}
