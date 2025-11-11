@@ -60,7 +60,7 @@
     - name: Set Go build path from registry entry
       ansible.builtin.set_fact:
         common_build_path: "{{ common_mcp_base_path }}/{{ common_go_build_path }}"
-        binary_full_path: "{{ common_mcp_base_path }}/bin/{{ common_package_name }}"
+        common_binary_full_path: "{{ common_mcp_base_path }}/bin/{{ common_package_name }}"
 
     - name: Create build directory
       ansible.builtin.file:
@@ -92,14 +92,14 @@
       ansible.builtin.command:
         cmd: go build -ldflags="-s -w" -o "{{ common_mcp_base_path }}/bin/{{ common_package_name }}" ./cmd/{{ common_package_name }}/
         chdir: "{{ common_build_path }}"
-        creates: "{{ binary_full_path }}"
+        creates: "{{ common_binary_full_path }}"
       become: true
       environment:
         PATH: "/usr/local/go/bin:/usr/local/bin:/usr/bin:/bin"
 
     - name: Make MCP Server binary executable
       ansible.builtin.file:
-        path: "{{ binary_full_path }}"
+        path: "{{ common_binary_full_path }}"
         mode: "0755"
       become: true
 
@@ -111,7 +111,7 @@
 
     - name: Create symlinks for Go binaries in system bin directory
       ansible.builtin.file:
-        src: "{{ binary_full_path }}"
+        src: "{{ common_binary_full_path }}"
         dest: "{{ common_go_binary_dest_path }}"
         state: link
         force: true
