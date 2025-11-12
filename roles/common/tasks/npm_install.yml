@@ -3,6 +3,8 @@
 
 - name: Include npm setup tasks
   ansible.builtin.include_tasks: npm_setup.yml
+  when:
+    - not common_npm_installed
 
 - name: Create MCP servers directory
   ansible.builtin.file:
