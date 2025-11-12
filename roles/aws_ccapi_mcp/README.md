@@ -28,7 +28,7 @@ The server requires AWS credentials to be configured. You can use any of the fol
 
 ### Environment Variables
 
-The server's default behavior can be customized through environment variables, similar to the credentials above. 
+The server's default behavior can be customized through environment variables, similar to the credentials above.
 
 See the documentation [here](https://awslabs.github.io/mcp/servers/ccapi-mcp-server#server-configuration) for configuration details on tagging resources and security scanning options.
 

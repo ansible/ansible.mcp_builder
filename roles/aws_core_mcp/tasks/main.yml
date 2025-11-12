@@ -7,7 +7,6 @@
     tasks_from: npm_setup
   when: not common_npm_installed
 
-
 - name: Include install manager tasks
   ansible.builtin.include_role:
     name: ansible.mcp_builder.common
