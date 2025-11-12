@@ -1,6 +1,6 @@
 # AWS Core MCP Server Role
 
-Installs the [AWS Core MCP server](https://awslabs.github.io/mcp/servers/iam-mcp-server/) from PyPI. The server is automatically registered in the MCP server registry system for usage by the [ansible.mcp](https://github.com/ansible-collections/ansible.mcp) collection.
+Installs the [AWS Core MCP server](https://awslabs.github.io/mcp/servers/core-mcp-server) from PyPI. The server is automatically registered in the MCP server registry system for usage by the [ansible.mcp](https://github.com/ansible-collections/ansible.mcp) collection.
 
 ## Configuration
 

@@ -1,5 +1,5 @@
 ---
-# AWS IAM MCP server defaults
+# AWS CCAPI MCP server defaults
 aws_ccapi_mcp_registry:
   - name: "awslabs.ccapi-mcp-server"
     type: "stdio"
