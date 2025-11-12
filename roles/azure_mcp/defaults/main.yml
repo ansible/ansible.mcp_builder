@@ -1,8 +1,5 @@
 ---
 # Azure MCP Server default details
-azure_mcp_package: "@azure/mcp"
-azure_mcp_version: "latest"
-
 azure_mcp_namespaces:
   - "az"
 
@@ -15,5 +12,5 @@ azure_mcp_registry:
       - "server"
       - "start"
       - "--namespace"
-      - "az"
+      - "az" # Default, will be replaced by task if azure_mcp_namespaces is overridden
     description: "Azure MCP Server - Interact with Azure resources via Model Context Protocol"

@@ -39,9 +39,20 @@ azure_mcp_namespaces:
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `azure_mcp_package` | `@azure/mcp` | npm package name for Azure MCP |
-| `azure_mcp_version` | `latest` | Package version (e.g., `0.6.0` or `latest`) |
-| `azure_mcp_namespaces` | `["az"]` | Azure namespaces to enable |
+| `azure_mcp_namespaces` | `["az"]` | Azure namespaces to enable. The first namespace in the list is used for the `--namespace` argument. Can be overridden when calling the role. |
+
+### Overriding the Namespace
+
+You can override the default namespace by setting `azure_mcp_namespaces` when calling the role. The first namespace in the list will be used:
+
+```yaml
+- name: Install Azure MCP with AKS namespace
+  ansible.builtin.include_role:
+    name: ansible.mcp_builder.azure_mcp
+  vars:
+    azure_mcp_namespaces:
+      - "aks"  # Override default "az"
+```
 
 ## Dependencies
 
@@ -114,8 +125,7 @@ additional_build_steps:
     - role: ansible.mcp_builder.azure_mcp
       vars:
         azure_mcp_namespaces:
-          - "az"
-          - "aks"
+          - "az"  # Override to use AKS namespace
 ```
 
 ## Generated Manifest Entry
