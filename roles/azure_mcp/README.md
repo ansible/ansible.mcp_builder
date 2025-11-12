@@ -30,9 +30,9 @@ azure_mcp_namespaces:
   - "azd"          # Azure Developer CLI
   - "bestpractices" # Azure best practices
   - "aks"          # Azure Kubernetes Service
-  - `compute`      # Azure Compute (VMs, scale sets)
-  - `storage`      # Azure Storage operations
-  - `network`      # Azure networking resources
+  - "compute"      # Azure Compute (VMs, scale sets)
+  - "storage"      # Azure Storage operations
+  - "network"      # Azure networking resources
 ```
 
 ## Variables
@@ -125,7 +125,7 @@ additional_build_steps:
     - role: ansible.mcp_builder.azure_mcp
       vars:
         azure_mcp_namespaces:
-          - "az"  # Override to use AKS namespace
+          - "az"  # Can override to use AKS namespace
 ```
 
 ## Generated Manifest Entry
