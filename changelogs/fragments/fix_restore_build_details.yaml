@@ -1,0 +1,3 @@
+---
+bugfixes:
+  - Restore build_details to mcp servers.yaml and update tooling to match

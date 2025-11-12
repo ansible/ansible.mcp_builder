@@ -10,3 +10,18 @@
   ansible.builtin.include_role:
     name: ansible.mcp_builder.common
     tasks_from: generate_manifest
+
+- name: Verify GitHub MCP installation
+  ansible.builtin.command:
+    cmd: mcp_manage run {{ common_package_name }} --help
+  changed_when: false
+  register: github_mcp_verify_result
+  environment:
+    GITHUB_PERSONAL_ACCESS_TOKEN: test
+
+- name: Display failed GitHub MCP installation
+  ansible.builtin.debug:
+    msg: "GitHub MCP server is not accessible. Please check the logs for more information."
+  when:
+    - github_mcp_verify_result is defined
+    - github_mcp_verify_result.rc != 0

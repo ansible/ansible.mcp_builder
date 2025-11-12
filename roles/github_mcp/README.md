@@ -1,21 +1,16 @@
-# GitHub MCP Role
+# GitHub MCP Server Role
 
 Builds and installs [GitHub MCP server](https://github.com/github/github-mcp-server) from source. The server is automatically registered in the MCP server registry system.
 
-## Dependencies
+## Configuration
 
-This role depends on the `common` role for Go environment setup and registry system.
+The `GITHUB_PERSONAL_ACCESS_TOKEN` is a required variable for the MCP server to operate.
 
-## Variables
+See the documentation [here](https://github.com/github/github-mcp-server?tab=readme-ov-file#environment-variables-recommended) for details on how Github recommends setting environment variables.
 
-The following variables can be customized:
+### Toolsets
 
-```yaml
-# GitHub MCP Server repository details
-github_mcp_repo: "https://github.com/github/github-mcp-server.git"
-github_mcp_branch: "main"
-
-```
+To configure allowed functionality, see the Github MCP server's [tool configuration](https://github.com/github/github-mcp-server?tab=readme-ov-file#tool-configuration) documentation.
 
 ## Registry Integration
 
@@ -24,50 +19,28 @@ This role automatically registers the GitHub MCP server in the global registry:
 ```yaml
 github_mcp_registry:
   - name: "github-mcp-server"
-    type: "go"
+    lang: "go"
+    type: "stdio"
     args: ["stdio"]
     description: "GitHub MCP Server - Access GitHub repositories, issues, and pull requests"
 ```
 
-The server is built to `/opt/mcp/bin/github-mcp-server` and can be executed via:
-```bash
-mcp_manage run github-mcp-server
-```
-
 ## Example Usage
 
-### Basic installation
-```yaml
-- name: Install GitHub MCP server
-  hosts: localhost
-  roles:
-    - ansible.mcp_builder.github_mcp  # Depends on common role and builds GitHub server
-```
-
-### Custom repository and binary name
-```yaml
-- name: Install GitHub MCP from custom fork
-  hosts: localhost
-  vars:
-    github_mcp_repo: "https://github.com/myorg/github-mcp-server.git"
-    github_mcp_branch: "feature-branch"
-    common_golang_version: "1.25.0"  # From common role
-  roles:
-    - ansible.mcp_builder.github_mcp
-```
+To be added.
 
 ## Usage
 
-After installation, the GitHub MCP server can be managed via the `mcp_manage` script:
+After installation, the GitHub MCP server can be managed manually via the `mcp_manage` script:
 
 ```bash
-# List all servers (including github-mcp-server)
+# List all servers
 mcp_manage list
 
-# Get information about the GitHub server
+# Get information about the MCP server
 mcp_manage info github-mcp-server
 
-# Run the GitHub MCP server
+# Run the MCP server
 mcp_manage run github-mcp-server
 
 # Run with additional arguments
