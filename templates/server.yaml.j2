@@ -1,12 +1,18 @@
 ---
-{% for registry in registries if registry.registry %}
+{% for registry in registries|sort(attribute="name") if registry.registry %}
 - name: {{ registry.name }}
   servers:
-  {% for server in registry.registry %}
+  {% for server in registry.registry|sort(attribute="name") %}
     - repository:
     {% for key, value in server.items() %}
       {% if value is string %}
         {{key}}: {{ value }}
+      {% elif not value %}
+        {% if value is mapping %}
+        {{ key }}: {}
+        {% elif value is sequence %}
+        {{ key }}: []
+        {% endif %}
       {% else %}
         {{ key }}:
         {% if value is mapping %}
