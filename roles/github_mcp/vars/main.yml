@@ -1,3 +1,0 @@
----
-# vars file for ansible.mcp_builder.github_mcp
-github_mcp_build_path: "{{ common_mcp_base_path }}/github/build"
