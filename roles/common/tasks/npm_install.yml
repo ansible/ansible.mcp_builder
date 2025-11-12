@@ -30,8 +30,8 @@
     - name: Run NodeSource setup script
       ansible.builtin.command:
         cmd: bash /tmp/nodesource_setup.sh
+        creates: /etc/yum.repos.d/nodesource*.repo
       become: true
-      changed_when: common_node_check.stdout != "sufficient"
 
     - name: "Install Node.js package (version: {{ common_nodejs_min_version }})"
       ansible.builtin.package:
