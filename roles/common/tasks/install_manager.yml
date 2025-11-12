@@ -14,7 +14,7 @@
           {%- set var_value = vars[var_name] -%}
           {%- if var_value is iterable and var_value is not string -%}
             {{ var_value }}
-      {%- endif -%}
+          {%- endif -%}
         {%- endif -%}
       {%- endfor -%}
 

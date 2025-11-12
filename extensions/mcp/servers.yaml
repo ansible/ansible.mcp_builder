@@ -1,12 +1,4 @@
 ---
-- name: github_mcp
-  servers:
-    - repository:
-        name: github-mcp-server
-        type: stdio
-        lang: go
-        args: ['stdio']
-        description: GitHub MCP Server - Access GitHub repositories, issues, and pull requests
 - name: aws_iam_mcp
   servers:
     - repository:
@@ -15,6 +7,7 @@
         lang: pypi
         args: []
         description: An MCP server for comprehensive AWS Identity and Access Management (IAM) operations.
+
 - name: azure_mcp
   servers:
     - repository:
@@ -24,3 +17,17 @@
         package: "@azure/mcp"
         args: ['server', 'start', '--namespace', 'az']
         description: Azure MCP Server - Interact with Azure resources via Model Context Protocol
+
+- name: github_mcp
+  servers:
+    - repository:
+        name: github-mcp-server
+        type: stdio
+        lang: go
+        args:
+          - stdio
+        description: GitHub MCP Server - Access GitHub repositories, issues, and pull requests
+        build_details:
+          source_repo: https://github.com/github/github-mcp-server.git
+          source_repo_branch: main
+          build_path: github/build
