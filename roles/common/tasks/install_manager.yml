@@ -1,11 +1,4 @@
 ---
-# Initialize installation flags
-- name: Initialize installation status flags
-  ansible.builtin.set_fact:
-    common_go_installed: "{{ common_go_installed | default(false) }}"
-    common_npm_installed: "{{ common_npm_installed | default(false) }}"
-    common_pypi_installed: "{{ common_pypi_installed | default(false) }}"
-
 - name: Get registry entry from current role
   ansible.builtin.set_fact:
     common_registry_entry: >-

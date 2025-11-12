@@ -1,0 +1,124 @@
+---
+# PyPI & uv setup tasks
+- name: Download uv installer
+  ansible.builtin.get_url:
+    url: "{{ common_uv_installer_url }}"
+    dest: "/tmp/uv-install.sh"
+    mode: "0755"
+
+- name: Install uv
+  ansible.builtin.shell: |
+    set -o pipefail
+    /tmp/uv-install.sh
+  args:
+    executable: /bin/bash
+  register: common_pypi_installed_result
+  changed_when: common_pypi_installed_result.rc == 0
+
+- name: Check common uv installation locations
+  ansible.builtin.stat:
+    path: "{{ uv_path_item }}"
+  loop:
+    - "{{ lookup('env', 'HOME') }}/.cargo/bin/uv"
+    - "{{ lookup('env', 'HOME') }}/.local/bin/uv"
+    - "{{ common_system_bin_path }}/uv"
+    - "/usr/bin/uv"
+  loop_control:
+    loop_var: uv_path_item
+  register: common_uv_location_check
+
+- name: Set uv path from common locations
+  ansible.builtin.set_fact:
+    common_uv_path:
+      stdout: "{{ uv_check_item.uv_path_item }}"
+  loop: "{{ common_uv_location_check.results }}"
+  loop_control:
+    loop_var: uv_check_item
+    label: "{{ uv_check_item.uv_path_item }}"
+  when:
+    - uv_check_item.stat.exists
+    - uv_check_item.stat.executable
+
+- name: Search for uv binary in home directory as fallback
+  ansible.builtin.find:
+    paths: "{{ lookup('env', 'HOME') }}"
+    patterns: "uv"
+    file_type: file
+    recurse: true
+  register: common_uv_search_fallback
+  when:
+    - common_uv_path is not defined
+
+- name: Set uv path from search fallback
+  ansible.builtin.set_fact:
+    common_uv_path:
+      stdout: "{{ common_uv_search_fallback.files[0].path }}"
+  when:
+    - common_uv_path is not defined
+    - common_uv_search_fallback.files | length > 0
+
+- name: Create symlink for uv in system bin directory
+  ansible.builtin.file:
+    src: "{{ common_uv_path.stdout }}"
+    dest: "{{ common_system_bin_path }}/uv"
+    state: link
+    force: true
+  become: true
+  when: common_uv_path.stdout != ""
+
+- name: Check common uvx installation locations
+  ansible.builtin.stat:
+    path: "{{ uvx_path_item }}"
+  loop:
+    - "{{ lookup('env', 'HOME') }}/.cargo/bin/uvx"
+    - "{{ lookup('env', 'HOME') }}/.local/bin/uvx"
+    - "{{ common_system_bin_path }}/uvx"
+    - "/usr/bin/uvx"
+  loop_control:
+    loop_var: uvx_path_item
+  register: common_uvx_location_check
+
+- name: Set uvx path from common locations
+  ansible.builtin.set_fact:
+    common_uvx_path:
+      stdout: "{{ uvx_check_item.uvx_path_item }}"
+  loop: "{{ common_uvx_location_check.results }}"
+  loop_control:
+    loop_var: uvx_check_item
+    label: "{{ uvx_check_item.uvx_path_item }}"
+  when:
+    - uvx_check_item.stat.exists
+    - uvx_check_item.stat.executable
+
+- name: Create symlink for uvx in system bin directory
+  ansible.builtin.file:
+    src: "{{ common_uvx_path.stdout }}"
+    dest: "{{ common_system_bin_path }}/uvx"
+    state: link
+    force: true
+  become: true
+  when:
+    - common_uvx_path.stdout != ""
+
+- name: Verify uv installation
+  ansible.builtin.command: uv --version
+  register: common_uv_version_output
+  changed_when: false
+
+- name: Assert uv is working
+  ansible.builtin.assert:
+    that:
+      - common_uv_version_output.rc == 0
+      - common_uv_version_output.stdout is defined
+      - common_uv_version_output.stdout != ""
+    fail_msg: "UV installation verification failed - command 'uv --version' did not work"
+    success_msg: "UV {{ common_uv_version_output.stdout }} verified successfully"
+
+- name: Mark uv as installed
+  ansible.builtin.set_fact:
+    common_pypi_installed: true
+
+- name: Remove uv installer script
+  ansible.builtin.file:
+    path: /tmp/uv-install.sh
+    state: absent

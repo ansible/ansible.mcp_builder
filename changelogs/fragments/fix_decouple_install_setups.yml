@@ -1,0 +1,3 @@
+---
+bugfixes:
+  - Decouple package installs from setup tasks

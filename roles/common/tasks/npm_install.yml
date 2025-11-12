@@ -1,77 +1,9 @@
 ---
 # Node.js and npm installation tasks
 
-- name: "Check if Node.js is already installed (minimum version: {{ common_nodejs_min_version }})"
-  ansible.builtin.shell: |
-    set -o pipefail
-    if command -v node >/dev/null 2>&1; then
-      node_version=$(node --version | cut -d'v' -f2 | cut -d'.' -f1)
-      if [ "$node_version" -ge {{ common_nodejs_min_version }} ]; then
-        echo "sufficient"
-      else
-        echo "insufficient"
-      fi
-    else
-      echo "not_installed"
-    fi
-  register: common_node_check
-  changed_when: false
-
-- name: "Install Node.js from NodeSource (version: {{ common_nodejs_min_version }})"
-  when: common_node_check.stdout != "sufficient"
-  block:
-    - name: Download NodeSource setup script
-      ansible.builtin.get_url:
-        url: https://rpm.nodesource.com/setup_{{ common_nodejs_min_version }}.x
-        dest: /tmp/nodesource_setup.sh
-        mode: "0755"
-      become: true
-
-    - name: Run NodeSource setup script
-      ansible.builtin.command:
-        cmd: bash /tmp/nodesource_setup.sh
-      become: true
-      changed_when: true
-
-    - name: "Install Node.js package (version: {{ common_nodejs_min_version }})"
-      ansible.builtin.package:
-        name: nodejs
-        state: present
-      become: true
-
-    - name: Clean up NodeSource setup script
-      ansible.builtin.file:
-        path: /tmp/nodesource_setup.sh
-        state: absent
-      become: true
-
-- name: Verify Node.js installation
-  ansible.builtin.command: node --version
-  register: common_node_version_output
-  changed_when: false
-
-- name: Assert Node.js is working
-  ansible.builtin.assert:
-    that:
-      - common_node_version_output.rc == 0
-      - common_node_version_output.stdout is defined
-      - common_node_version_output.stdout != ""
-    fail_msg: "Node.js installation verification failed - command 'node --version' did not work"
-    success_msg: "Node.js {{ common_node_version_output.stdout }} verified successfully"
-
-- name: Verify NPM installation
-  ansible.builtin.command: npm --version
-  register: common_npm_version_output
-  changed_when: false
-
-- name: Assert NPM is working
-  ansible.builtin.assert:
-    that:
-      - common_npm_version_output.rc == 0
-      - common_npm_version_output.stdout is defined
-      - common_npm_version_output.stdout != ""
-    fail_msg: "NPM installation verification failed - command 'npm --version' did not work"
-    success_msg: "NPM {{ common_npm_version_output.stdout }} verified successfully"
+- name: Include npm setup tasks
+  ansible.builtin.include_tasks: npm_setup.yml
+  when: not common_npm_installed
 
 - name: Create MCP servers directory
   ansible.builtin.file:
@@ -138,7 +70,6 @@
     - common_npm_verify_result.rc != 0
 
 # Clean up
-
 - name: Clean npm cache (created during package install)
   ansible.builtin.command: npm cache clean --force
   failed_when: false
