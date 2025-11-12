@@ -1,4 +1,28 @@
 ---
+- name: aws_ccapi_mcp
+  servers:
+    - repository:
+        name: awslabs.ccapi-mcp-server
+        type: stdio
+        lang: pypi
+        args: []
+        description: An MCP server that enables LLMs to directly create and manage AWS resources using AWS Cloud Control API and IaC Generator.
+- name: aws_cdk_mcp
+  servers:
+    - repository:
+        name: awslabs.cdk-mcp-server
+        type: stdio
+        lang: pypi
+        args: []
+        description: An MCP server for AWS Cloud Development Kit (CDK) best practices, IaC patterns, and security compliance with CDK Nag.
+- name: aws_core_mcp
+  servers:
+    - repository:
+        name: awslabs.core-mcp-server
+        type: stdio
+        lang: pypi
+        args: []
+        description: An MCP server that provides a starting point for using AWS MCP servers through a dynamic proxy server strategy
 - name: aws_iam_mcp
   servers:
     - repository:

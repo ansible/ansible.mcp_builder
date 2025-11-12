@@ -1,0 +1,52 @@
+---
+# AWS CDK MCP role tasks
+
+- name: Set up Node for npm dependencies
+  ansible.builtin.include_role:
+    name: ansible.mcp_builder.common
+    tasks_from: npm_setup
+  when: not common_npm_installed
+
+- name: Include install manager tasks
+  ansible.builtin.include_role:
+    name: ansible.mcp_builder.common
+    tasks_from: install_manager
+
+- name: Update MCP servers manifest
+  ansible.builtin.include_role:
+    name: ansible.mcp_builder.common
+    tasks_from: generate_manifest
+
+- name: Verify AWS CDK MCP installation
+  ansible.builtin.command:
+    cmd: mcp_manage run {{ common_package_name }} --help
+  changed_when: false
+  register: aws_cdk_mcp_verify_result
+
+- name: Display failed AWS CDK MCP installation
+  ansible.builtin.debug:
+    msg: "AWS CDK MCP is not accessible. Please check the logs for more information."
+  when:
+    - aws_cdk_mcp_verify_result is defined
+    - aws_cdk_mcp_verify_result.rc != 0
+
+- name: Install aws-cdk via npm # Required dependency
+  ansible.builtin.command:
+    cmd: npm install -g aws-cdk
+  register: aws_cdk_mcp_npm_install_result
+  failed_when: false
+  changed_when: aws_cdk_mcp_npm_install_result.rc == 0
+
+- name: Check for aws-cdk package
+  ansible.builtin.command:
+    cmd: cdk --version
+  register: aws_cdk_mcp_npm_verify_result
+  failed_when: false
+  changed_when: aws_cdk_mcp_npm_verify_result.rc == 0
+
+- name: Display failed aws-cdk package installation
+  ansible.builtin.debug:
+    msg: "aws-cdk package is not accessible. Please check the logs for more information."
+  when:
+    - aws_cdk_mcp_npm_install_result is defined
+    - aws_cdk_mcp_npm_install_result.rc != 0

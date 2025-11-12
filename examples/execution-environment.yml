@@ -27,4 +27,5 @@ additional_build_steps:
   append_galaxy: |
     RUN rm -rf /tmp/ansible.mcp_builder
   append_final: |
-    RUN ansible-playbook ansible.mcp_builder.install_mcp -e mcp_servers=github_mcp,aws_iam_mcp,azure_mcp
+    RUN ansible-playbook ansible.mcp_builder.install_mcp -e mcp_servers=aws_core_mcp,aws_cdk_mcp,aws_ccapi_mcp,aws_iam_mcp,github_mcp,azure_mcp
+

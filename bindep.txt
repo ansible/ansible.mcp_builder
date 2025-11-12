@@ -1,6 +1,7 @@
+gcc
 git
-tar
+jq
 python3-dnf
 python3-pip
-jq
+tar
 libicu
