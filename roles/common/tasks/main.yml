@@ -18,3 +18,9 @@
     state: link
     force: true
   become: true
+
+- name: Set default installation flags
+  ansible.builtin.set_fact:
+    common_go_installed: false
+    common_npm_installed: false
+    common_pypi_installed: false
