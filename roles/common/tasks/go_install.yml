@@ -5,18 +5,16 @@
   ansible.builtin.set_fact:
     common_go_build_details: >-
       {
-      {%- for var_name, var_value in vars.items() -%}
-        {%- if var_name.startswith(item) and not var_name.endswith('registry') -%}
-          '{{ var_name.replace(item + "_", "") }}': '{{ var_value }}',
-        {%- endif -%}
+      {%- for var_name in q('varnames', item + '_build_.+') -%}
+        '{{ var_name.replace(item + "_build_", "") }}': '{{ lookup('vars', var_name) }}',
       {%- endfor -%}
       }
 
 - name: Set Go build info from registry entry
   ansible.builtin.set_fact:
-    common_go_build_repo: "{{ common_go_build_details.source_repo }}"
-    common_go_build_branch: "{{ common_go_build_details.source_repo_branch }}"
-    common_go_build_path: "{{ common_go_build_details.build_path }}"
+    common_go_build_repo: "{{ common_go_build_details.repo }}"
+    common_go_build_branch: "{{ common_go_build_details.repo_branch }}"
+    common_go_build_path: "{{ common_go_build_details.path }}"
   when: common_go_build_details | length > 0
 
 - name: Install Go
