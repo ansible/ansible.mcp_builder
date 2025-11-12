@@ -3,8 +3,7 @@
 
 - name: Include pypi setup tasks
   ansible.builtin.include_tasks: pypi_setup.yml
-  when:
-    - not common_pypi_installed
+  when: not common_pypi_installed
 
 - name: Install PyPI MCP server package
   ansible.builtin.command:
