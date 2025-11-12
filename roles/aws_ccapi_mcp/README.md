@@ -4,7 +4,7 @@ Installs the [AWS Cloud Control MCP server](https://awslabs.github.io/mcp/server
 
 ## Configuration
 
-Details taken from AWS IAM MCP server [environment variables documentation](https://awslabs.github.io/mcp/servers/ccapi-mcp-server#environment-variables-1).
+Details taken from AWS Cloud Control MCP server [environment variables documentation](https://awslabs.github.io/mcp/servers/ccapi-mcp-server#environment-variables-1).
 
 ### AWS Credentials
 The server requires AWS credentials to be configured. You can use any of the following methods:

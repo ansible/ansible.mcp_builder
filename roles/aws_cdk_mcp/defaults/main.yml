@@ -1,5 +1,5 @@
 ---
-# AWS IAM MCP server defaults
+# AWS CDK MCP server defaults
 aws_cdk_mcp_registry:
   - name: "awslabs.cdk-mcp-server"
     type: "stdio"
