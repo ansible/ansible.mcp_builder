@@ -5,7 +5,7 @@
         name: awslabs.ccapi-mcp-server
         type: stdio
         lang: pypi
-          args: []
+        args: []
         description: An MCP server that enables LLMs to directly create and manage AWS resources using AWS Cloud Control API and IaC Generator.
 - name: aws_cdk_mcp
   servers:
@@ -13,7 +13,7 @@
         name: awslabs.cdk-mcp-server
         type: stdio
         lang: pypi
-          args: []
+        args: []
         description: An MCP server for AWS Cloud Development Kit (CDK) best practices, IaC patterns, and security compliance with CDK Nag.
 - name: aws_core_mcp
   servers:
@@ -21,7 +21,7 @@
         name: awslabs.core-mcp-server
         type: stdio
         lang: pypi
-          args: []
+        args: []
         description: An MCP server that provides a starting point for using AWS MCP servers through a dynamic proxy server strategy
 - name: aws_iam_mcp
   servers:
@@ -29,7 +29,7 @@
         name: awslabs.iam-mcp-server
         type: stdio
         lang: pypi
-          args: []
+        args: []
         description: An MCP server for comprehensive AWS Identity and Access Management (IAM) operations.
 - name: azure_mcp
   servers:
@@ -39,10 +39,10 @@
         lang: npm
         package: "@azure/mcp"
         args:
-            - server
-            - start
-            - --namespace
-            - az
+          - server
+          - start
+          - --namespace
+          - az
         description: Azure MCP Server - Interact with Azure resources via Model Context Protocol
 - name: github_mcp
   servers:
@@ -51,9 +51,9 @@
         type: stdio
         lang: go
         args:
-            - stdio
+          - stdio
         description: GitHub MCP Server - Access GitHub repositories, issues, and pull requests
         build_details:
-            source_repo: https://github.com/github/github-mcp-server.git
-            source_repo_branch: main
-            build_path: github/build
+          source_repo: https://github.com/github/github-mcp-server.git
+          source_repo_branch: main
+          build_path: github/build
