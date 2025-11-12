@@ -1,0 +1,8 @@
+---
+# AWS Core MCP server defaults
+aws_core_mcp_registry:
+  - name: "awslabs.core-mcp-server"
+    type: "stdio"
+    lang: "pypi"
+    args: []
+    description: "An MCP server that provides a starting point for using AWS MCP servers through a dynamic proxy server strategy"

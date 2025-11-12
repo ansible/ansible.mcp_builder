@@ -1,10 +1,10 @@
-# AWS IAM MCP Server Role
+# AWS CDK MCP Server Role
 
-Installs the [AWS IAM MCP server](https://awslabs.github.io/mcp/servers/iam-mcp-server/) from PyPI. The server is automatically registered in the MCP server registry system for usage by the [ansible.mcp](https://github.com/ansible-collections/ansible.mcp) collection.
+Installs the [AWS CDK MCP server](https://awslabs.github.io/mcp/servers/cdk-mcp-server) from PyPI. The server is automatically registered in the MCP server registry system for usage by the [ansible.mcp](https://github.com/ansible-collections/ansible.mcp) collection.
 
 ## Configuration
 
-Details taken from AWS IAM MCP server [configuration documentation](https://awslabs.github.io/mcp/servers/iam-mcp-server/#configuration).
+Details taken from AWS CDK MCP server [installation documentation](https://awslabs.github.io/mcp/servers/cdk-mcp-server#installation).
 
 ### AWS Credentials
 The server requires AWS credentials to be configured. You can use any of the following methods:
@@ -26,11 +26,11 @@ The server requires AWS credentials to be configured. You can use any of the fol
 
 ## Registry Integration
 
-This role automatically registers the MCP server in the global registry:
+This role automatically registers the GitHub MCP server in the global registry:
 
 ```yaml
-aws_iam_mcp_registry:
-  - name: "awslabs.iam-mcp-server"
+aws_cdk_mcp_registry:
+  - name: "awslabs.cdk-mcp-server"
     lang: "pypi"
     type: stdio
     args: []
@@ -38,26 +38,28 @@ aws_iam_mcp_registry:
 
 The server is installed via `uv` and can be executed via:
 ```bash
-mcp_manage run awslabs.iam-mcp-server
+mcp_manage run awslabs.cdk-mcp-server
 ```
 
 ## Example Usage
 
 To be added.
 
+```
+
 ## Usage
 
-After installation, the AWS IAM MCP server can be managed via the `mcp_manage` script:
+After installation, the AWS CDK MCP server can be managed via the `mcp_manage` script:
 
 ```bash
 # List all servers
 mcp_manage list
 
 # Get information about the MCP server
-mcp_manage info awslabs.iam-mcp-server
+mcp_manage info awslabs.cdk-mcp-server
 
 # Run the MCP server
-mcp_manage run awslabs.iam-mcp-server
+mcp_manage run awslabs.cdk-mcp-server
 
 # Run with additional arguments
-mcp_manage run awslabs.iam-mcp-server --example-arg
+mcp_manage run awslabs.cdk-mcp-server --example-arg

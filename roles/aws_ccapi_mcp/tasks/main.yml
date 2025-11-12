@@ -1,5 +1,5 @@
 ---
-# AWS IAM MCP role tasks
+# AWS CCAPI MCP role tasks
 
 - name: Include install manager tasks
   ansible.builtin.include_role:
@@ -11,15 +11,15 @@
     name: ansible.mcp_builder.common
     tasks_from: generate_manifest
 
-- name: Verify AWS IAM MCP installation
+- name: Verify AWS Core MCP installation
   ansible.builtin.command:
     cmd: mcp_manage run {{ common_package_name }} --help
   changed_when: false
-  register: aws_iam_mcp_verify_result
+  register: aws_ccapi_mcp_verify_result
 
-- name: Display failed AWS IAM MCP installation
+- name: Display failed AWS Core MCP installation
   ansible.builtin.debug:
-    msg: "AWS IAM MCP is not accessible. Please check the logs for more information."
+    msg: "AWS Core MCP is not accessible. Please check the logs for more information."
   when:
-    - aws_iam_mcp_verify_result is defined
-    - aws_iam_mcp_verify_result.rc != 0
+    - aws_ccapi_mcp_verify_result is defined
+    - aws_ccapi_mcp_verify_result.rc != 0

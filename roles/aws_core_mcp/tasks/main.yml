@@ -1,0 +1,31 @@
+---
+# AWS Core MCP role tasks
+
+- name: Set up Node for npm dependencies
+  ansible.builtin.include_role:
+    name: ansible.mcp_builder.common
+    tasks_from: npm_setup
+  when: not common_npm_installed
+
+- name: Include install manager tasks
+  ansible.builtin.include_role:
+    name: ansible.mcp_builder.common
+    tasks_from: install_manager
+
+- name: Update MCP servers manifest
+  ansible.builtin.include_role:
+    name: ansible.mcp_builder.common
+    tasks_from: generate_manifest
+
+- name: Verify AWS Core MCP installation
+  ansible.builtin.command:
+    cmd: mcp_manage run {{ common_package_name }} --help
+  changed_when: false
+  register: aws_core_mcp_verify_result
+
+- name: Display failed AWS Core MCP installation
+  ansible.builtin.debug:
+    msg: "AWS Core MCP is not accessible. Please check the logs for more information."
+  when:
+    - aws_core_mcp_verify_result is defined
+    - aws_core_mcp_verify_result.rc != 0

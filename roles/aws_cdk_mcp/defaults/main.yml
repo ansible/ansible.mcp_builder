@@ -1,0 +1,8 @@
+---
+# AWS CDK MCP server defaults
+aws_cdk_mcp_registry:
+  - name: "awslabs.cdk-mcp-server"
+    type: "stdio"
+    lang: "pypi"
+    args: []
+    description: "An MCP server for AWS Cloud Development Kit (CDK) best practices, IaC patterns, and security compliance with CDK Nag."

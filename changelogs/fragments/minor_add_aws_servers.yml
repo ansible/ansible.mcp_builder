@@ -1,0 +1,5 @@
+---
+minor_changes:
+  - Add AWS Core MCP server to supported server roles.
+  - Add AWS CDK MCP server to supported server roles.
+  - Add AWS Cloud Control MCP server to supported server roles.
