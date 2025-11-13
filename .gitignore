@@ -166,3 +166,6 @@ cython_debug/
 # Ansible
 .ansible/
 collections
+
+# These exist solely for the servers.yaml generation
+noop.yaml

@@ -21,7 +21,7 @@
     - name: Create noop task file
       ansible.builtin.copy:
         content: "---\n# Do nothing\n"
-        dest: "roles/{{ item }}/tasks/noop.yaml"
+        dest: "{{ playbook_dir }}/roles/{{ item }}/tasks/noop.yaml"
         mode: "0644"
       loop: "{{ mcp_roles }}"
 
@@ -32,14 +32,19 @@
         public: true
       loop: "{{ mcp_roles }}"
 
-    - name: Zip registry with details
+    - name: Collect registries with details
       ansible.builtin.set_fact:
         registries: >-
           {{ registries | default([]) | union([{
-            'name': item,
-            'registry': lookup('vars', item + '_registry', default=[]),
+            'role': item,
+            'servers': lookup('vars', item + '_registry', default=[]),
+            'vars': dict(
+              q('varnames', item + '_(?!registry).+', default=[]) | zip(
+                q('vars', *q('varnames', item + '_(?!registry).+', default=[]))
+              )
+            ),
           }]) }}
-      loop: "{{ mcp_roles }}"
+      loop: "{{ mcp_roles | sort }}"
 
     - name: Create destination directory
       ansible.builtin.file:
@@ -47,9 +52,8 @@
         state: directory
         mode: "0755"
 
-    - name: Template each registry
-      ansible.builtin.template:
-        src: server.yaml.j2
+    - name: Write servers.yaml file
+      ansible.builtin.copy:
         dest: "{{ mcp_extension_dir }}/servers.yaml"
+        content: "{{ registries | to_nice_yaml(explicit_start=true, indent=2, sort_keys=false) }}"
         mode: "0644"
-        lstrip_blocks: true

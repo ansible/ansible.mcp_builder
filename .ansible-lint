@@ -5,3 +5,4 @@ profile: production
 
 exclude_paths:
   - examples/ # Temporary skip while ansible.mcp is not usable in tests
+  - extensions/mcp/servers.yaml # to_nice_yaml doesn't create sufficiently nice yaml
