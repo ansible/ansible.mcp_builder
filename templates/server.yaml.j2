@@ -1,41 +1,41 @@
 ---
+{% macro process_value(key, value) %}
+  {% if value is string %}
+    {% if value.startswith('@') %}
+{{ key }}: "{{ value }}"
+    {% else %}
+{{ key }}: {{ value }}
+    {% endif %}
+  {% elif value is sequence %}
+    {% if not value %}
+{{ key }}: []
+    {% else %}
+{{ key }}:
+      {% for item in value %}
+  - {{ item }}
+      {% endfor %}
+    {% endif %}
+  {% elif value is mapping %}
+    {% if not value %}
+{{ key }}: {}
+    {% else %}
+{{ key }}:
+      {% for item_key, item_value in value.items() %}
+  {{ item_key }}: {{ item_value }}
+      {% endfor %}
+    {% endif %}
+  {% endif %}
+{% endmacro %}
 {% for registry in registries|sort(attribute="name") if registry.registry %}
 - name: {{ registry.name }}
   servers:
   {% for server in registry.registry|sort(attribute="name") %}
     - repository:
     {% for key, value in server.items() %}
-      {% if value is string %}
-        {% if key == 'package' and value is string and value.startswith('@') %}
-        {{ key }}: "{{ value }}"
-        {% else %}
-        {{ key }}: {{ value }}
-        {% endif %}
-      {% elif value is sequence %}
-        {% if not value %}
-        {{ key }}: []
-        {% else %}
-        {{ key }}:
-          {% for item in value %}
-          - {{ item }}
-          {% endfor %}
-        {% endif %}
-      {% elif value is mapping %}
-        {% if not value %}
-        {{ key }}: {}
-        {% else %}
-        {{ key }}
-          {% for item_key, item_value in value.items() %}
-          {{ item_key }}: {{ item_value }}
-          {% endfor %}
-        {% endif %}
-      {% endif %}
+        {{ process_value(key, value) | indent(8) -}}
     {% endfor %}
     {% for key in q('varnames', registry.name + '_.+') if not key.endswith("_registry") %}
-      {% set value = lookup('vars', key) %}
-      {% if value is string %}
-        {{ key }}: {{ value }}
-      {% endif %}
+        {{ process_value(key, lookup('vars', key)) | indent(8) -}}
     {% endfor %}
   {% endfor %}
 {% endfor %}

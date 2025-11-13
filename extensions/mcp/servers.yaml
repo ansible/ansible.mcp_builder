@@ -44,6 +44,8 @@
           - --namespace
           - az
         description: Azure MCP Server - Interact with Azure resources via Model Context Protocol
+        azure_mcp_namespaces:
+          - az
 - name: github_mcp
   servers:
     - repository:
