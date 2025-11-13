@@ -4,28 +4,38 @@
   servers:
   {% for server in registry.registry|sort(attribute="name") %}
     - repository:
-        {% for key, value in server.items() %}
+    {% for key, value in server.items() %}
+      {% if value is string %}
         {% if key == 'package' and value is string and value.startswith('@') %}
         {{ key }}: "{{ value }}"
-        {% elif value is string %}
+        {% else %}
         {{ key }}: {{ value }}
-        {% elif value is mapping %}
-        {{ key }}:
-          {% for item_key, item_value in value.items() %}
-          {{ item_key }}: {{ item_value }}
-          {% endfor %}
-        {% elif value is sequence %}
-        {% if value | length > 0 %}
+        {% endif %}
+      {% elif value is sequence %}
+        {% if not value %}
+        {{ key }}: []
+        {% else %}
         {{ key }}:
           {% for item in value %}
           - {{ item }}
           {% endfor %}
-        {% else %}
-        {{ key }}: []
         {% endif %}
+      {% elif value is mapping %}
+        {% if not value %}
+        {{ key }}: {}
         {% else %}
+        {{ key }}
+          {% for item_key, item_value in value.items() %}
+          {{ item_key }}: {{ item_value }}
+          {% endfor %}
+        {% endif %}
+      {% endif %}
+    {% endfor %}
+    {% for key in q('varnames', registry.name + '_.+') if not key.endswith("_registry") %}
+      {% set value = lookup('vars', key) %}
+      {% if value is string %}
         {{ key }}: {{ value }}
-        {% endif %}
-        {% endfor %}
+      {% endif %}
+    {% endfor %}
   {% endfor %}
 {% endfor %}

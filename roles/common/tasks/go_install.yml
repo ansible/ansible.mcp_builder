@@ -4,11 +4,13 @@
 - name: Get Go build details from role variables
   ansible.builtin.set_fact:
     common_go_build_details: >-
-      {%- for registry in common_registry_entry -%}
-        {%- if 'build_details' in registry.keys() -%}
-          {{ registry.build_details }}
+      {
+      {%- for var_name, var_value in vars.items() -%}
+        {%- if var_name.startswith(item) and not var_name.endswith('registry') -%}
+          '{{ var_name.replace(item + "_", "") }}': '{{ var_value }}',
         {%- endif -%}
       {%- endfor -%}
+      }
 
 - name: Set Go build info from registry entry
   ansible.builtin.set_fact:

@@ -1,0 +1,3 @@
+---
+bugfixes:
+  - Nested build_details vars were inaccessible, they are now top-level for easier overriding.
