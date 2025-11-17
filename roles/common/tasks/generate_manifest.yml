@@ -4,6 +4,14 @@
 - name: Get registry from parent role
   ansible.builtin.set_fact:
     common_server_registries: "{{ lookup('vars', ansible_parent_role_names[0].split('.')[-1] + '_registry', default=[]) }}"
+  when:
+    - ansible_parent_role_names is defined
+    - ansible_parent_role_names | length > 0
+
+- name: Set registry fallback if no parent role
+  ansible.builtin.set_fact:
+    common_server_registries: "{{ common_server_registries | default([]) }}"
+  when: common_server_registries is not defined
 
 - name: Assign paths to registry entries
   ansible.builtin.include_tasks: assign_registry_paths.yml

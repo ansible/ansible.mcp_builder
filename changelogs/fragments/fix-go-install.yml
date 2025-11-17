@@ -1,0 +1,3 @@
+---
+bugfixes:
+  - Fix go install failing while accessing string var as dict (https://github.com/ansible/ansible.mcp_builder/issues/25).

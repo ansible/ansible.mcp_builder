@@ -2,14 +2,14 @@
 all:
   vars:
     common_mcp_base_path: "/tmp/mcp_manifest"
-    x_mcp_registry:
+    # For tests that call common role directly (no parent role)
+    common_server_registries:
       - name: mcp_one
         type: stdio
         lang: pypi
         path: /path/to/mcp/one
         args:
           - "--stdio"
-    y_mcp_registry:
       - name: mcp_two
         type: http
         lang: npm
