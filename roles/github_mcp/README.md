@@ -36,7 +36,7 @@ See the [GitHub MCP Server documentation](https://github.com/github/github-mcp-s
 
 To configure allowed functionality for local mode, see the GitHub MCP server's [tool configuration](https://github.com/github/github-mcp-server?tab=readme-ov-file#tool-configuration) documentation.
 
-To configure toolsets in remote mode, set the `github_mcp_remote_config.path` to the desired toolset URL (see GitHub's remote toolset documentation [here](https://github.com/github/github-mcp-server/blob/main/docs/remote-server.md#remote-mcp-toolsets)).
+To configure toolsets in remote mode, set the `github_mcp_registry.path` to the desired toolset URL (see GitHub's remote toolset documentation [here](https://github.com/github/github-mcp-server/blob/main/docs/remote-server.md#remote-mcp-toolsets)).
 
 ## Registry Integration
 
