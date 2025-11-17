@@ -2,15 +2,15 @@
 # Default variables for github_mcp role
 # Users can override these in their playbooks or group_vars
 
-# Pre-register this MCP server in the global registry so common role can detect dependencies
-# Using standard naming convention: {role_name}_mcp_registry
-github_mcp_registry:
-  - name: "github-mcp-server"
-    type: "stdio"
-    lang: "go"
-    args: ["stdio"]
-    description: "GitHub MCP Server - Access GitHub repositories, issues, and pull requests"
-    build_details:
-      source_repo: "https://github.com/github/github-mcp-server.git"
-      source_repo_branch: "main"
-      build_path: "github/build"
+# GitHub MCP Server Mode: 'local' or 'remote'
+# - local: Build and run the server locally (requires Go build)
+# - remote: Use GitHub's hosted MCP service (no build required)
+github_mcp_mode: "local"
+
+# Note: github_mcp_registry is defined in vars/main.yml (local mode, default).
+# When github_mcp_mode='remote', tasks/main.yml loads vars/remote.yml to override it.
+# Registry discovery is now role-specific (uses role_name), preventing variable pollution.
+
+github_mcp_build_repo: https://github.com/github/github-mcp-server.git
+github_mcp_build_repo_branch: main
+github_mcp_build_path: github/build

@@ -40,7 +40,3 @@
         args:
           - stdio
         description: GitHub MCP Server - Access GitHub repositories, issues, and pull requests
-        build_details:
-          source_repo: https://github.com/github/github-mcp-server.git
-          source_repo_branch: main
-          build_path: github/build

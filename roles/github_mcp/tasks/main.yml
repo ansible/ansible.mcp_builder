@@ -1,6 +1,11 @@
 ---
 # GitHub MCP role tasks
 
+- name: Override registry for remote mode
+  ansible.builtin.include_vars:
+    file: "remote.yml"
+  when: github_mcp_mode == 'remote'
+
 - name: Include install manager tasks
   ansible.builtin.include_role:
     name: ansible.mcp_builder.common
@@ -11,17 +16,35 @@
     name: ansible.mcp_builder.common
     tasks_from: generate_manifest
 
-- name: Verify GitHub MCP installation
+- name: Verify GitHub MCP installation (local mode)
   ansible.builtin.command:
     cmd: mcp_manage run {{ common_package_name }} --help
   changed_when: false
-  register: github_mcp_verify_result
+  failed_when: false
+  register: github_mcp_verify_local
   environment:
     GITHUB_PERSONAL_ACCESS_TOKEN: test
+  when: github_mcp_mode == 'local'
 
-- name: Display failed GitHub MCP installation
+- name: Verify GitHub MCP registration (remote mode)
+  ansible.builtin.command:
+    cmd: mcp_manage info {{ common_package_name }}
+  changed_when: false
+  failed_when: false
+  register: github_mcp_verify_remote
+  when: github_mcp_mode == 'remote'
+
+- name: Display verification status (success)
   ansible.builtin.debug:
-    msg: "GitHub MCP server is not accessible. Please check the logs for more information."
+    msg: "GitHub MCP server ({{ github_mcp_mode }} mode) registered successfully"
   when:
-    - github_mcp_verify_result is defined
-    - github_mcp_verify_result.rc != 0
+    - (github_mcp_mode == 'local' and github_mcp_verify_local.rc | default(1) == 0) or (github_mcp_mode == 'remote' and github_mcp_verify_remote.rc | default(1)
+      == 0)
+    - ansible_verbosity >= 2
+
+- name: Display verification status (failure)
+  ansible.builtin.debug:
+    msg: "GitHub MCP server ({{ github_mcp_mode }} mode) verification failed. Please check the logs for more information."
+  when:
+    - (github_mcp_mode == 'local' and github_mcp_verify_local.rc | default(1) != 0) or (github_mcp_mode == 'remote' and github_mcp_verify_remote.rc | default(1)
+      != 0)
