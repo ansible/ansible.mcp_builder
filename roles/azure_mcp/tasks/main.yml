@@ -1,0 +1,24 @@
+---
+# Azure MCP role tasks
+
+- name: Evaluate namespace in registry args
+  ansible.builtin.set_fact:
+    azure_mcp_registry:
+      - "{{ azure_mcp_registry[0] | combine({'args': azure_mcp_registry[0].args[:-1] + [azure_mcp_namespaces | first]}) }}"
+
+- name: Include install manager tasks
+  ansible.builtin.include_role:
+    name: ansible.mcp_builder.common
+    tasks_from: install_manager
+
+- name: Update MCP servers manifest
+  ansible.builtin.include_role:
+    name: ansible.mcp_builder.common
+    tasks_from: generate_manifest
+
+- name: Verify Azure MCP installation via mcp_manage
+  ansible.builtin.command:
+    cmd: mcp_manage run azmcp --help
+  register: azure_mcp_verify_result
+  changed_when: false
+  failed_when: azure_mcp_verify_result.rc not in [0, 1]

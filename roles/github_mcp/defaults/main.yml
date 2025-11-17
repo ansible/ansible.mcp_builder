@@ -11,6 +11,6 @@ github_mcp_mode: "local"
 # When github_mcp_mode='remote', tasks/main.yml loads vars/remote.yml to override it.
 # Registry discovery is now role-specific (uses role_name), preventing variable pollution.
 
-github_mcp_build_repo: https://github.com/github/github-mcp-server.git
-github_mcp_build_repo_branch: main
-github_mcp_build_path: github/build
+github_mcp_build_repo: "https://github.com/github/github-mcp-server.git"
+github_mcp_build_repo_branch: "main"
+github_mcp_build_path: "github/build"

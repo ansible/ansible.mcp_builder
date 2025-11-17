@@ -4,3 +4,4 @@ jq
 python3-dnf
 python3-pip
 tar
+libicu

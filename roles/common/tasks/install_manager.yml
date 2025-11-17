@@ -10,7 +10,7 @@
 
 - name: Set package name from registry entry
   ansible.builtin.set_fact:
-    common_package_name: "{{ common_registry_entry[0].name }}"
+    common_package_name: "{{ common_registry_entry[0].package | default(common_registry_entry[0].name) }}"
   when: common_registry_entry | length > 0
 
 - name: Include Go installation tasks
