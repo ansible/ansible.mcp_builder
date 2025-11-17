@@ -10,6 +10,10 @@
       {%- endfor -%}
       }
 
+- name: Convert build details to dictionary
+  ansible.builtin.set_fact:
+    common_go_build_details: "{{ common_go_build_details | from_yaml }}"
+
 - name: Set Go build info from registry entry
   ansible.builtin.set_fact:
     common_go_build_repo: "{{ common_go_build_details.repo }}"
