@@ -36,7 +36,7 @@ list_servers() {
         type=$(jq -r ".[\"$server\"].type" "$MANIFEST_FILE")
         if [[ "$type" == "http" ]]; then
             path=$(jq -r ".[\"$server\"].url" "$MANIFEST_FILE")
-            echo "  - $server (type: $type, url: $path) [remote]"
+            echo "  - $server (type: $type, url: $path)"
         else
             path=$(jq -r ".[\"$server\"].command" "$MANIFEST_FILE")
             echo "  - $server (type: $type, path: $path)"
