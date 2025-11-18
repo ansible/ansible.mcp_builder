@@ -128,7 +128,7 @@ Servers are selected by their exact role name. E.g. `github_mcp`.
 
 Use the provided [examples/](examples/). You will need the `test-playbook.yml`, `requirements.yml`, and `execution-environment.yml` files.
 
-Update the [examples/execution-environment.yml](examples/execution-environment.yml)`additional_build_files` paths with your local path to the cloned collection.
+Update the [examples/execution-environment.yml](examples/execution-environment.yml)`additional_build_files` paths with your local path to the cloned collection
 
 ### Building an EE
 
