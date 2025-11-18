@@ -118,7 +118,7 @@ Servers are selected by their exact role name. E.g. `github_mcp`.
 
 ```
   append_final: |
-        RUN ansible-playbook ansible.mcp_builder.install_mcp -e mcp_servers=github_mcp,azure_core_mcp
+    RUN ansible-playbook ansible.mcp_builder.install_mcp -e mcp_servers=github_mcp,azure_core_mcp
 ```
 
 ### Prerequisities
