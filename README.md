@@ -85,10 +85,15 @@ The generated `/opt/mcp/mcpservers.json` file contains all server definitions:
 
 ```json
 {
-    "mcp-hello-world": {
+    "azure_mcp_registry": {
         "type": "stdio",
-        "command": "npx --prefix /opt/mcp/npm_installs mcp-hello-world",
-        "args": []
+        "lang": "npm",
+        "package": "@azure/mcp",
+        "args":
+            - "server"
+            - "start"
+            - "--namespace"
+            - "az" 
     },
     "aws-iam-mcp-server": {
         "type": "stdio",
@@ -102,11 +107,6 @@ The generated `/opt/mcp/mcpservers.json` file contains all server definitions:
         "args": ["stdio"],
         "description": "GitHub MCP Server - Access GitHub repositories, issues, and pull requests"
     },
-    "remote": {
-        "args": [],
-        "type": "http",
-        "url": "https://example.com/mcp"
-    }
 }
 ```
 
@@ -117,20 +117,18 @@ The `ansible.mcp_builder` role is designed to run as a step in building an EE. T
 Servers are selected by their exact role name. E.g. `github_mcp`.
 
 ```
-  append_builder: |
-    RUN ansible-playbook ansible.mcp_builder.install_mcp -e mcp_servers=github_mcp,<additional-servers>
   append_final: |
-    COPY --from=builder /opt/mcp /opt/mcp
+        RUN ansible-playbook ansible.mcp_builder.install_mcp -e mcp_servers=github_mcp,azure_core_mcp
 ```
 
 ### Prerequisities
 
 - `ansible.mcp_builder` cloned localy
-- `ansible.mcp` cloned locally
+- `ansible.mcp` defined in galaxy requirements.
 
 Use the provided [examples/](examples/). You will need the `test-playbook.yml`, `requirements.yml`, and `execution-environment.yml` files.
 
-Update the [examples/execution-environment.yml](examples/execution-environment.yml)`additional_build_files` paths with your local paths to the cloned collections.
+Update the [examples/execution-environment.yml](examples/execution-environment.yml)`additional_build_files` paths with your local path to the cloned collection.
 
 ### Building an EE
 
