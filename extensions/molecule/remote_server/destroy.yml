@@ -1,0 +1,10 @@
+---
+- name: Destroy
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  tasks:
+    - name: Cleanup temporary path
+      ansible.builtin.file:
+        path: "{{ common_mcp_base_path }}"
+        state: absent

@@ -1,0 +1,8 @@
+---
+# Local mode registry (default)
+github_mcp_registry:
+  - name: "github-mcp-server"
+    type: "stdio"
+    lang: "go"
+    args: ["stdio"]
+    description: "GitHub MCP Server - Access GitHub repositories, issues, and pull requests"
