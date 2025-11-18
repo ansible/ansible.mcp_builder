@@ -97,7 +97,7 @@ The generated `/opt/mcp/mcpservers.json` file contains all server definitions:
     },
     "aws-iam-mcp-server": {
         "type": "stdio",
-        "command": "uv tool run awslabs.iam-mcp-server",
+        "command": "/opt/mcp/bin/awslabs.iam-mcp-server",
         "args": [],
         "package": "awslabs.iam-mcp-server"
     },

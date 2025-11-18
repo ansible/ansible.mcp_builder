@@ -37,7 +37,11 @@
 
 - name: Display verification result
   ansible.builtin.debug:
-    msg: "PyPI package {{ common_package_name }} {{ 'installed successfully - executable found at ' + common_mcp_base_path + '/bin/' + common_package_name if common_pypi_executable_check.stat.exists else 'WARNING: executable not found at expected location' }}"
+    msg: >-
+      PyPI package {{ common_package_name }}
+      {{ 'installed successfully - executable found at ' + common_mcp_base_path + '/bin/' + common_package_name
+      if common_pypi_executable_check.stat.exists
+      else 'WARNING: executable not found at expected location' }}
   when: ansible_verbosity >= 2
 
 - name: Verify executable runs
