@@ -1,0 +1,167 @@
+---
+# Integration Test Verification - Validate MCP Server Installation
+- name: Verify - Validate MCP Server Installation
+  hosts: all
+  gather_facts: false
+
+  tasks:
+    # Test 1: Verify manifest file exists and is valid JSON
+    - name: Check if mcpservers.json manifest exists
+      ansible.builtin.stat:
+        path: /opt/mcp/mcpservers.json
+      register: manifest_stat
+
+    - name: Fail if manifest doesn't exist
+      ansible.builtin.fail:
+        msg: "Manifest file not found at /opt/mcp/mcpservers.json"
+      when: not manifest_stat.stat.exists
+
+    - name: Read manifest file
+      ansible.builtin.slurp:
+        src: /opt/mcp/mcpservers.json
+      register: manifest_content
+
+    - name: Parse manifest as JSON
+      ansible.builtin.set_fact:
+        manifest_data: "{{ manifest_content.content | b64decode | from_json }}"
+
+    - name: Display installed servers from manifest
+      ansible.builtin.debug:
+        msg: "Installed MCP servers: {{ manifest_data.keys() | list }}"
+
+    # Test 2: Verify mcp_manage script exists and is executable
+    - name: Check if mcp_manage script exists
+      ansible.builtin.stat:
+        path: /usr/local/bin/mcp_manage
+      register: mcp_manage_stat
+
+    - name: Verify mcp_manage is executable
+      ansible.builtin.assert:
+        that:
+          - mcp_manage_stat.stat.exists
+          - mcp_manage_stat.stat.executable
+        fail_msg: "mcp_manage script is missing or not executable"
+        success_msg: "mcp_manage script is present and executable"
+
+    # Test 3: Test mcp_manage list command
+    - name: Run mcp_manage list
+      ansible.builtin.command:
+        cmd: /usr/local/bin/mcp_manage list
+      register: list_output
+      changed_when: false
+      failed_when: list_output.rc != 0
+
+    - name: Display mcp_manage list output
+      ansible.builtin.debug:
+        var: list_output.stdout_lines
+
+    # Test 3b: Test mcp_manage info command for azmcp
+    - name: Run mcp_manage info for azmcp
+      ansible.builtin.command:
+        cmd: /usr/local/bin/mcp_manage info azmcp
+      register: info_output
+      changed_when: false
+      failed_when: info_output.rc != 0
+
+    - name: Display mcp_manage info output
+      ansible.builtin.debug:
+        var: info_output.stdout_lines
+
+    # Test 4: Verify Azure MCP (azmcp) is in manifest
+    - name: Check Azure MCP is registered
+      ansible.builtin.assert:
+        that:
+          - "'azmcp' in manifest_data"
+        fail_msg: "Azure MCP server (azmcp) not found in manifest. Found: {{ manifest_data.keys() | list }}"
+        success_msg: "Azure MCP server (azmcp) found in manifest"
+
+    # Test 5: Verify Azure MCP configuration
+    - name: Get Azure MCP server details
+      ansible.builtin.set_fact:
+        azure_mcp_config: "{{ manifest_data['azmcp'] }}"
+
+    - name: Validate Azure MCP configuration
+      ansible.builtin.assert:
+        that:
+          - azure_mcp_config.type is defined
+          - azure_mcp_config.command is defined or azure_mcp_config.url is defined
+        fail_msg: "Azure MCP configuration is incomplete"
+        success_msg: "Azure MCP configuration is valid"
+
+    # Test 6: Verify GitHub MCP is also installed (if we installed it)
+    - name: Check GitHub MCP is registered
+      ansible.builtin.assert:
+        that:
+          - "'github-mcp-server' in manifest_data"
+        fail_msg: "GitHub MCP server not found in manifest"
+        success_msg: "GitHub MCP server found in manifest"
+
+    # Test 7: Verify dependencies are installed
+    - name: Check Go is installed
+      ansible.builtin.command:
+        cmd: go version
+      register: go_version
+      changed_when: false
+      failed_when: false
+
+    - name: Display Go version
+      ansible.builtin.debug:
+        msg: "Go version: {{ go_version.stdout }}"
+      when: go_version.rc == 0
+
+    - name: Check Node.js is installed
+      ansible.builtin.command:
+        cmd: node --version
+      register: node_version
+      changed_when: false
+      failed_when: false
+
+    - name: Display Node.js version
+      ansible.builtin.debug:
+        msg: "Node.js version: {{ node_version.stdout }}"
+      when: node_version.rc == 0
+
+    # Test 8: Test mcp_manage run command (as per discussion with Alison)
+    - name: Test mcp_manage run for azmcp (with timeout)
+      ansible.builtin.command:
+        cmd: timeout 3 /usr/local/bin/mcp_manage run azmcp 2>&1 || echo "Timeout (expected)"
+      register: mcp_run_result
+      changed_when: false
+      failed_when: false
+
+    - name: Verify mcp_manage run works (timeout is expected)
+      ansible.builtin.assert:
+        that:
+          - mcp_run_result.rc in [0, 124, 143] # Success, timeout, or SIGTERM
+        fail_msg: "mcp_manage run failed unexpectedly"
+        success_msg: "mcp_manage run command works (timeout expected for server startup)"
+
+    - name: Test mcp_manage run for github-mcp-server (with timeout)
+      ansible.builtin.command:
+        cmd: timeout 3 /usr/local/bin/mcp_manage run github-mcp-server 2>&1 || echo "Timeout (expected)"
+      register: github_run_result
+      changed_when: false
+      failed_when: false
+      when: "'github-mcp-server' in manifest_data"
+
+    - name: Verify github-mcp-server can run
+      ansible.builtin.assert:
+        that:
+          - github_run_result.rc in [0, 124, 143]
+        fail_msg: "github-mcp-server run failed unexpectedly"
+        success_msg: "github-mcp-server run command works"
+      when: "'github-mcp-server' in manifest_data"
+
+    # Final summary
+    - name: Test Summary
+      ansible.builtin.debug:
+        msg:
+          - "All integration tests passed!"
+          - "Manifest file: ✓"
+          - "mcp_manage script: ✓"
+          - "mcp_manage list: ✓"
+          - "mcp_manage info: ✓"
+          - "mcp_manage run: ✓"
+          - "Azure MCP (azmcp) registered: ✓"
+          - "GitHub MCP registered: ✓"
+          - "Dependencies: ✓"

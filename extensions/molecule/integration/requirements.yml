@@ -1,0 +1,7 @@
+---
+# Collection requirements for integration tests
+collections:
+  - name: containers.podman
+    version: ">=1.18.0"
+  - name: ansible.posix
+    version: ">=2.1.0"

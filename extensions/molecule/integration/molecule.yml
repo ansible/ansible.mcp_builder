@@ -1,0 +1,47 @@
+---
+dependency:
+  name: galaxy
+  options:
+    requirements-file: requirements.yml
+
+driver:
+  name: podman
+
+platforms:
+  - name: mcp-test-instance
+    image: ghcr.io/ansible/mcp-builder-test-base:latest
+    pre_build_image: true
+    pull: if-not-present # Use local if available, pull from GHCR if needed (works for both local and CI)
+    command: /bin/bash -c "while true; do sleep 30; done"
+    privileged: false
+    volumes:
+      - ${MOLECULE_PROJECT_DIRECTORY}/../..:/workspace:Z
+    working_dir: /workspace
+
+provisioner:
+  name: ansible
+  config_options:
+    defaults:
+      callbacks_enabled: ansible.posix.profile_tasks
+      stdout_callback: default
+      result_format: yaml
+      allow_broken_conditionals: true
+      remote_tmp: /tmp
+      collections_paths:
+        - /tmp/ansible_collections
+  env:
+    ANSIBLE_ALLOW_BROKEN_CONDITIONALS: "true"
+    ANSIBLE_COLLECTIONS_PATH: /tmp/ansible_collections
+  inventory:
+    host_vars:
+      mcp-test-instance:
+        ansible_connection: podman
+        ansible_python_interpreter: /usr/bin/python3
+        ansible_user: root
+        ansible_become: false
+        # MCP installation variables
+        common_mcp_base_path: /opt/mcp
+        azure_mcp_install_path: /opt/mcp
+
+verifier:
+  name: ansible

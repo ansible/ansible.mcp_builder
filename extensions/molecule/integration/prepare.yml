@@ -1,0 +1,34 @@
+---
+# Prepare playbook - Install the collection in the test container
+# Collections are installed via dependency phase (requirements.yml)
+# This playbook just installs our collection and sets up paths
+- name: Prepare test environment
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Ensure collection directory exists
+      ansible.builtin.file:
+        path: /tmp/ansible_collections/ansible
+        state: directory
+        mode: "0755"
+
+    - name: Install collection from workspace
+      ansible.builtin.command:
+        cmd: ansible-galaxy collection install /workspace --force
+        chdir: /tmp
+      register: collection_install
+      changed_when: collection_install.rc == 0
+
+    - name: Verify collection is installed
+      ansible.builtin.stat:
+        path: /tmp/ansible_collections/ansible/mcp_builder
+      register: collection_check
+
+    - name: Fail if collection not found
+      ansible.builtin.fail:
+        msg: "Collection not installed at /tmp/ansible_collections/ansible/mcp_builder"
+      when: not collection_check.stat.exists
+
+    - name: Set ANSIBLE_COLLECTIONS_PATH
+      ansible.builtin.set_fact:
+        ansible_collections_paths: ["/tmp/ansible_collections"]
