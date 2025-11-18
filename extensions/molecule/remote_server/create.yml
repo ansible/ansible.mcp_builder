@@ -1,0 +1,11 @@
+---
+- name: Create
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  tasks:
+    - name: Create temporary path
+      ansible.builtin.file:
+        name: "{{ common_mcp_base_path }}"
+        state: directory
+        mode: u=rwX

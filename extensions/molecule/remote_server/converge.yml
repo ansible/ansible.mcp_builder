@@ -1,0 +1,15 @@
+---
+- name: Converge
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  tasks:
+    - name: Ensure base functionality
+      ansible.builtin.include_role:
+        name: ansible.mcp_builder.common
+
+    - name: Install GitHub MCP in remote mode
+      ansible.builtin.include_role:
+        name: ansible.mcp_builder.github_mcp
+      vars:
+        github_mcp_mode: remote

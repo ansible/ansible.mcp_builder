@@ -15,5 +15,4 @@
         that:
           - |-
             command_output.stdout == "Available MCP servers:
-              - mcp_one (type: stdio, path: /path/to/mcp/one)
-              - mcp_two (type: http, url: https://path.to/mcp/two)"
+              - github-mcp-server (type: http, url: https://api.githubcopilot.com/mcp/)"

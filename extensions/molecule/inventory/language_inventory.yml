@@ -3,7 +3,9 @@
 ---
 all:
   vars:
-    x_mcp_registry:
+    # For tests that call common role directly (no parent role)
+    # install_manager only uses [0], so only define one entry
+    common_registry_entry:
       - name: mcp_one
         type: stdio
         lang: pypi
