@@ -18,9 +18,6 @@
       # Rebuild weekly to get security updates
       - cron: '0 0 * * 0'
 
-  env:
-    IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/mcp-builder-test-base
-
   permissions:
     contents: read
     packages: write
@@ -44,35 +41,39 @@
             username: ${{ github.actor }}
             password: ${{ secrets.GITHUB_TOKEN }}
 
-        - name: Extract metadata
-          id: meta
-          uses: docker/metadata-action@v5
-          with:
-            images: ${{ env.IMAGE_NAME }}
-            tags: |
-              type=ref,event=branch
-              type=sha,prefix={{branch}}-
-              type=raw,value=latest,enable={{is_default_branch}}
+        - name: Determine image tag
+          id: tag
+          run: |
+            if [ "${{ github.event_name }}" == "pull_request" ]; then
+              echo "image_tag=ghcr.io/${{ github.repository_owner }}/mcp-builder-test-base:pr-${{ github.event.pull_request.number }}" >> $GITHUB_OUTPUT
+              echo "push_image=false" >> $GITHUB_OUTPUT
+            elif [ "${{ github.ref }}" == "refs/heads/main" ]; then
+              echo "image_tag=ghcr.io/${{ github.repository_owner }}/mcp-builder-test-base:latest" >> $GITHUB_OUTPUT
+              echo "push_image=true" >> $GITHUB_OUTPUT
+            else
+              BRANCH_NAME=$(echo "${{ github.ref }}" | sed 's/refs\/heads\///' | sed 's/\//-/g')
+              echo "image_tag=ghcr.io/${{ github.repository_owner }}/mcp-builder-test-base:${BRANCH_NAME}" >> $GITHUB_OUTPUT
+              echo "push_image=true" >> $GITHUB_OUTPUT
+            fi
 
         - name: Build and push image
           uses: docker/build-push-action@v5
           with:
-            context: .
-            file: ./Containerfile
-            # Only push on main branch or workflow_dispatch
-            push: ${{ github.event_name != 'pull_request' }}
-            tags: ${{ steps.meta.outputs.tags }}
-            labels: ${{ steps.meta.outputs.labels }}
+            context: .devcontainer
+            file: .devcontainer/Containerfile
+            push: ${{ steps.tag.outputs.push_image }}
+            tags: ${{ steps.tag.outputs.image_tag }}
             cache-from: type=gha
             cache-to: type=gha,mode=max
-
-        - name: Image digest
-          run: echo ${{ steps.meta.outputs.digest }}
+            labels: |
+              org.opencontainers.image.source=${{ github.repositoryUrl }}
+              org.opencontainers.image.revision=${{ github.sha }}
 
         - name: Test image
-          if: github.event_name != 'pull_request'
+          if: steps.tag.outputs.push_image == 'true'
           run: |
-            docker pull ${{ env.IMAGE_NAME }}:latest
-            docker run --rm ${{ env.IMAGE_NAME }}:latest ansible --version
-            docker run --rm ${{ env.IMAGE_NAME }}:latest go version
-            docker run --rm ${{ env.IMAGE_NAME }}:latest node --version
+            docker pull ${{ steps.tag.outputs.image_tag }}
+            docker run --rm ${{ steps.tag.outputs.image_tag }} ansible --version
+            docker run --rm ${{ steps.tag.outputs.image_tag }} go version
+            docker run --rm ${{ steps.tag.outputs.image_tag }} node --version
+            echo "Image built and tested successfully: ${{ steps.tag.outputs.image_tag }}"
