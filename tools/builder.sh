@@ -6,8 +6,8 @@ IMAGE_TAG="ghcr.io/ansible/mcp-builder-test-base:latest"
 PUSH_IMAGE=false
 RUN_TESTS=false
 
-# Get repo root (script is in .github/scripts/, so go up two levels)
-REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
+# Get repo root (script is in tools/, so go up one level)
+REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 
 # Parse arguments
 while [[ $# -gt 0 ]]; do
