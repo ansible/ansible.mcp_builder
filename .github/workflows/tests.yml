@@ -1,114 +1,205 @@
 ---
-name: "CI"
+  name: "CI"
+  concurrency:
+    group: ${{ github.head_ref || github.run_id }}
+    cancel-in-progress: true
+  on: # yamllint disable-line rule:truthy
+    pull_request:
+      branches: [main]
+    workflow_dispatch:
+    # schedule:
+    #   - cron: '0 0 * * *'
 
-concurrency:
-  group: ${{ github.head_ref || github.run_id }}
-  cancel-in-progress: true
+  permissions:
+    contents: read
+    packages: write
 
-on: # yamllint disable-line rule:truthy
-  pull_request:
-    branches: [main]
-  workflow_dispatch:
-  # schedule:
-  #   - cron: '0 0 * * *'
+  jobs:
+    changelog:
+      uses: ansible/ansible-content-actions/.github/workflows/changelog.yaml@main
+      if: github.event_name == 'pull_request'
 
-jobs:
-  changelog:
-    uses: ansible/ansible-content-actions/.github/workflows/changelog.yaml@main
-    if: github.event_name == 'pull_request'
-  build-import:
-    uses: ansible/ansible-content-actions/.github/workflows/build_import.yaml@main
-  ansible-lint:
-    uses: ansible/ansible-content-actions/.github/workflows/ansible_lint.yaml@main
-  sanity:
-    uses: ansible/ansible-content-actions/.github/workflows/sanity.yaml@main
-  unit-galaxy:
-    uses: ansible/ansible-content-actions/.github/workflows/unit.yaml@main
-  integration-tests:
-    name: Integration Tests
-    runs-on: ubuntu-latest
-    needs: [ansible-lint]
+    build-import:
+      uses: ansible/ansible-content-actions/.github/workflows/build_import.yaml@main
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    ansible-lint:
+      uses: ansible/ansible-content-actions/.github/workflows/ansible_lint.yaml@main
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
+    sanity:
+      uses: ansible/ansible-content-actions/.github/workflows/sanity.yaml@main
 
-      - name: Install dependencies
-        run: |
-          pip install ansible-core molecule molecule-plugins[podman]
-          sudo apt-get update
-          sudo apt-get install -y podman
+    unit-galaxy:
+      uses: ansible/ansible-content-actions/.github/workflows/unit.yaml@main
 
-      - name: Log in to GHCR
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+    # NEW: Build or pull test image before integration tests
+    build-test-image:
+      name: Build Test Image
+      runs-on: ubuntu-latest
+      needs: [ansible-lint]
+      permissions:
+        contents: read
+        packages: write
+      outputs:
+        image_tag: ${{ steps.determine.outputs.image_tag }}
 
-      - name: Pull pre-built test image
-        run: |
-          podman pull ghcr.io/ansible/mcp-builder-test-base:latest
+      steps:
+        - name: Checkout code
+          uses: actions/checkout@v4
 
-      - name: Start podman service
-        run: |
-          sudo systemctl start podman.socket
-          sudo systemctl enable podman.socket
-          sudo systemctl status podman.socket || true
+        - name: Log in to GHCR
+          uses: docker/login-action@v3
+          with:
+            registry: ghcr.io
+            username: ${{ github.actor }}
+            password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Verify podman is working
-        run: |
-          podman info
-          podman ps
+        - name: Determine if image exists and set tag
+          id: determine
+          run: |
+            # Use PR-specific tag for PRs, latest for main branch
+            if [ "${{ github.event_name }}" == "pull_request" ]; then
+              IMAGE_TAG="ghcr.io/${{ github.repository_owner }}/mcp-builder-test-base:pr-${{ github.event.pull_request.number }}"
+            else
+              IMAGE_TAG="ghcr.io/${{ github.repository_owner }}/mcp-builder-test-base:latest"
+            fi
 
-      - name: Run Molecule integration tests
-        run: |
-          cd extensions
-          molecule test -s integration --destroy=always
-        env:
-          ANSIBLE_FORCE_COLOR: '1'
-          PY_COLORS: '1'
-          MOLECULE_PROJECT_DIRECTORY: ${{ github.workspace }}/extensions
+            # Try to pull the image
+            if docker pull "$IMAGE_TAG" 2>/dev/null; then
+              echo "Image exists in registry: $IMAGE_TAG"
+              echo "image_exists=true" >> $GITHUB_OUTPUT
+            else
+              echo "Image does not exist, will build it: $IMAGE_TAG"
+              echo "image_exists=false" >> $GITHUB_OUTPUT
+            fi
 
-      - name: Upload test results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: molecule-test-results
-          path: |
-            extensions/molecule/integration/*.log
-            extensions/.molecule/
-  all_green:
-    if: ${{ always() }}
-    needs:
-      - changelog
-      - build-import
-      - sanity
-      - unit-galaxy
-      - integration-tests
-      - ansible-lint
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check test results
-        run: |
-          echo "Ansible Lint: ${{ needs.ansible-lint.result }}"
-          echo "Sanity Tests: ${{ needs.sanity.result }}"
-          echo "Unit Tests: ${{ needs.unit-galaxy.result }}"
-          echo "Integration Tests: ${{ needs.integration-tests.result }}"
-          echo "Changelog: ${{ needs.changelog.result }}"
-          echo "Build Import: ${{ needs.build-import.result }}"
+            echo "image_tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
 
-          if [ "${{ needs.ansible-lint.result }}" != "success" ] || \
-             [ "${{ needs.sanity.result }}" != "success" ] || \
-             [ "${{ needs.unit-galaxy.result }}" != "success" ] || \
-             [ "${{ needs.integration-tests.result }}" != "success" ]; then
-            echo "Some tests failed"
-            exit 1
-          else
-            echo "All tests passed!"
-          fi
+        - name: Set up Docker Buildx
+          if: steps.determine.outputs.image_exists == 'false'
+          uses: docker/setup-buildx-action@v3
+
+        - name: Build and push image
+          if: steps.determine.outputs.image_exists == 'false'
+          uses: docker/build-push-action@v5
+          with:
+            context: .
+            file: Containerfile
+            push: true
+            tags: ${{ steps.determine.outputs.image_tag }}
+            cache-from: type=gha
+            cache-to: type=gha,mode=max
+            labels: |
+              org.opencontainers.image.source=${{ github.repositoryUrl }}
+              org.opencontainers.image.revision=${{ github.sha }}
+
+        - name: Verify image
+          run: |
+            docker pull ${{ steps.determine.outputs.image_tag }}
+            docker run --rm ${{ steps.determine.outputs.image_tag }} ansible --version
+            docker run --rm ${{ steps.determine.outputs.image_tag }} go version
+            docker run --rm ${{ steps.determine.outputs.image_tag }} node --version
+
+    integration-tests:
+      name: Integration Tests
+      runs-on: ubuntu-latest
+      needs: [ansible-lint, build-test-image]  # Wait for image to be ready
+
+      steps:
+        - name: Checkout code
+          uses: actions/checkout@v4
+
+        - name: Set up Python
+          uses: actions/setup-python@v5
+          with:
+            python-version: '3.11'
+
+        - name: Install dependencies
+          run: |
+            pip install ansible-core molecule molecule-plugins[podman]
+            sudo apt-get update
+            sudo apt-get install -y podman
+
+        - name: Log in to GHCR
+          uses: docker/login-action@v3
+          with:
+            registry: ghcr.io
+            username: ${{ github.actor }}
+            password: ${{ secrets.GITHUB_TOKEN }}
+
+        - name: Pull pre-built test image
+          run: |
+            IMAGE_TAG="${{ needs.build-test-image.outputs.image_tag }}"
+            echo "Pulling image: $IMAGE_TAG"
+            podman pull "$IMAGE_TAG"
+
+            # Verify image was pulled
+            podman images | grep mcp-builder-test-base || (echo "Image not found after pull" && exit 1)
+
+        - name: Start podman service
+          run: |
+            sudo systemctl start podman.socket
+            sudo systemctl enable podman.socket
+            sudo systemctl status podman.socket || true
+
+        - name: Verify podman is working
+          run: |
+            podman info
+            podman ps
+
+        - name: Update molecule.yml with correct image tag
+          run: |
+            # Update molecule.yml to use the correct image tag (PR-specific or latest)
+            cd extensions/molecule/integration
+            IMAGE_TAG="${{ needs.build-test-image.outputs.image_tag }}"
+            sed -i "s|image:.*|image: $IMAGE_TAG|" molecule.yml
+            echo "Updated molecule.yml to use image: $IMAGE_TAG"
+            cat molecule.yml | grep image:
+
+        - name: Run Molecule integration tests
+          run: |
+            cd extensions
+            molecule test -s integration --destroy=always
+          env:
+            ANSIBLE_FORCE_COLOR: '1'
+            PY_COLORS: '1'
+            MOLECULE_PROJECT_DIRECTORY: ${{ github.workspace }}/extensions
+
+        - name: Upload test results
+          if: always()
+          uses: actions/upload-artifact@v4
+          with:
+            name: molecule-test-results
+            path: |
+              extensions/molecule/integration/*.log
+              extensions/.molecule/
+
+    all_green:
+      if: ${{ always() }}
+      needs:
+        - changelog
+        - build-import
+        - sanity
+        - unit-galaxy
+        - integration-tests
+        - ansible-lint
+      runs-on: ubuntu-latest
+      steps:
+        - name: Check test results
+          run: |
+            echo "Ansible Lint: ${{ needs.ansible-lint.result }}"
+            echo "Sanity Tests: ${{ needs.sanity.result }}"
+            echo "Unit Tests: ${{ needs.unit-galaxy.result }}"
+            echo "Integration Tests: ${{ needs.integration-tests.result }}"
+            echo "Changelog: ${{ needs.changelog.result }}"
+            echo "Build Import: ${{ needs.build-import.result }}"
+
+            # Don't fail on skipped changelog (only required for PRs)
+            if [ "${{ needs.ansible-lint.result }}" != "success" ] || \
+               [ "${{ needs.sanity.result }}" != "success" ] || \
+               [ "${{ needs.unit-galaxy.result }}" != "success" ] || \
+               [ "${{ needs.integration-tests.result }}" != "success" ]; then
+              echo "Some tests failed"
+              exit 1
+            else
+              echo "All tests passed!"
+            fi

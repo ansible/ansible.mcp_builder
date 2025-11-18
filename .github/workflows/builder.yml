@@ -45,8 +45,9 @@
           id: tag
           run: |
             if [ "${{ github.event_name }}" == "pull_request" ]; then
+              # For PRs, push with PR-specific tag so integration tests can use it
               echo "image_tag=ghcr.io/${{ github.repository_owner }}/mcp-builder-test-base:pr-${{ github.event.pull_request.number }}" >> $GITHUB_OUTPUT
-              echo "push_image=false" >> $GITHUB_OUTPUT
+              echo "push_image=true" >> $GITHUB_OUTPUT
             elif [ "${{ github.ref }}" == "refs/heads/main" ]; then
               echo "image_tag=ghcr.io/${{ github.repository_owner }}/mcp-builder-test-base:latest" >> $GITHUB_OUTPUT
               echo "push_image=true" >> $GITHUB_OUTPUT
