@@ -69,6 +69,7 @@
     description: GitHub MCP Server - Access GitHub repositories, issues, and pull
       requests
   vars:
+    github_mcp_mode: local
     github_mcp_build_repo: https://github.com/github/github-mcp-server.git
     github_mcp_build_repo_branch: main
     github_mcp_build_path: github/build

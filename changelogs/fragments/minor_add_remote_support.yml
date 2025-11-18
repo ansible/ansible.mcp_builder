@@ -1,0 +1,4 @@
+---
+minor_changes:
+  - Add remote support for GitHub MCP server.
+  - Add support for future remote servers.

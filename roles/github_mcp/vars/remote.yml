@@ -1,0 +1,8 @@
+---
+# Remote mode registry
+github_mcp_registry:
+  - name: "github-mcp-server"
+    type: "http"
+    path: "https://api.githubcopilot.com/mcp/"
+    args: []
+    description: "GitHub MCP Server - Access GitHub repositories, issues, and pull requests"

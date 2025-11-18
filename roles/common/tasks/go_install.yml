@@ -1,18 +1,16 @@
 ---
 # Go installation tasks
 
+- name: Initialize Go build details dictionary
+  ansible.builtin.set_fact:
+    common_go_build_details: {}
+
 - name: Get Go build details from role variables
   ansible.builtin.set_fact:
-    common_go_build_details: >-
-      {
-      {%- for var_name in q('varnames', item + '_build_.+') -%}
-        '{{ var_name.replace(item + "_build_", "") }}': '{{ lookup('vars', var_name) }}',
-      {%- endfor -%}
-      }
-
-- name: Convert build details to dictionary
-  ansible.builtin.set_fact:
-    common_go_build_details: "{{ common_go_build_details | from_yaml }}"
+    common_go_build_details: "{{ common_go_build_details | combine({var_name.replace(item + '_build_', ''): lookup('vars', var_name)}) }}"
+  loop: "{{ q('varnames', item + '_build_.+') }}"
+  loop_control:
+    loop_var: var_name
 
 - name: Set Go build info from registry entry
   ansible.builtin.set_fact:
