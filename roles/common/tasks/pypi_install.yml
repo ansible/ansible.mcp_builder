@@ -54,5 +54,3 @@
   when:
     - ansible_verbosity >= 2
     - common_pypi_verify_result is defined
-
-# Note: We keep the uv cache to speed up builds and provide Python interpreters
