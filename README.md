@@ -93,7 +93,7 @@ The generated `/opt/mcp/mcpservers.json` file contains all server definitions:
             - "server"
             - "start"
             - "--namespace"
-            - "az" 
+            - "az"
     },
     "aws-iam-mcp-server": {
         "type": "stdio",
