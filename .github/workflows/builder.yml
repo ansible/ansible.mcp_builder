@@ -59,8 +59,8 @@
         - name: Build and push image
           uses: docker/build-push-action@v5
           with:
-            context: .devcontainer
-            file: .devcontainer/Containerfile
+            context: .
+            file: Containerfile
             push: ${{ steps.tag.outputs.push_image }}
             tags: ${{ steps.tag.outputs.image_tag }}
             cache-from: type=gha
