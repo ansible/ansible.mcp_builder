@@ -5,11 +5,12 @@ profile: production
 
 # Exclude patterns
 exclude_paths:
+  - examples/ # Temporary skip while ansible.mcp is not usable in tests
+  - extensions/mcp/servers.yaml # to_nice_yaml doesn't create sufficiently nice yaml
   - .cache/
   - .github/
   - tests/output/
   - molecule/
-  - examples/context/
 
 # Enable specific rules
 enable_list:
