@@ -113,31 +113,47 @@
           with:
             python-version: '3.11'
 
-        - name: Install Molecule + Podman + Ansible deps
+        - name: Install Podman
           run: |
-            pip install ansible-core molecule molecule-plugins[podman]
             sudo apt-get update
             sudo apt-get install -y podman uidmap
-            ansible-galaxy collection install containers.podman ansible.posix --force
 
-        - name: Configure Podman Rootless
+        - name: Setup Podman Rootless Environment
           run: |
             export XDG_RUNTIME_DIR="/run/user/$(id -u)"
             mkdir -p $XDG_RUNTIME_DIR
             sudo chown -R $USER:$USER $XDG_RUNTIME_DIR
 
-            # Enable Podman API service (needed by molecule-podman)
-            podman system service -t 0 &
-            sleep 3
+        - name: Enable Podman Service (GitHub Actions compatible)
+          run: |
+            export XDG_RUNTIME_DIR="/run/user/$(id -u)"
+            # Start podman API service in background (no systemd needed)
+            nohup podman system service -t 0 > /tmp/podman-service.log 2>&1 &
+            echo $! > /tmp/podman-service.pid
+            sleep 5
             podman info
+            echo "Podman service started, PID: $(cat /tmp/podman-service.pid)"
+
+        - name: Install Molecule + Ansible deps
+          run: |
+            pip install ansible-core molecule molecule-plugins[podman]
+            ansible-galaxy collection install containers.podman ansible.posix --force
+
+        - name: Test Podman
+          run: |
+            export XDG_RUNTIME_DIR="/run/user/$(id -u)"
+            podman info
+            podman ps
 
         - name: Log in to GHCR for Podman
           run: |
+            export XDG_RUNTIME_DIR="/run/user/$(id -u)"
             echo "${{ secrets.GITHUB_TOKEN }}" \
             | podman login ghcr.io --username ${{ github.actor }} --password-stdin
 
         - name: Pull pre-built test image
           run: |
+            export XDG_RUNTIME_DIR="/run/user/$(id -u)"
             IMAGE_TAG="${{ needs.build-test-image.outputs.image_tag }}"
             echo "Pulling: $IMAGE_TAG"
             podman pull "$IMAGE_TAG"
@@ -151,14 +167,36 @@
             echo "Updated molecule.yml:"
             grep image: molecule.yml
 
+        - name: Ensure Podman Service is Running
+          run: |
+            export XDG_RUNTIME_DIR="/run/user/$(id -u)"
+            # Check if service is still running, restart if needed
+            if [ -f /tmp/podman-service.pid ]; then
+              PID=$(cat /tmp/podman-service.pid)
+              if ! ps -p $PID > /dev/null 2>&1; then
+                echo "Podman service died, restarting..."
+                nohup podman system service -t 0 > /tmp/podman-service.log 2>&1 &
+                echo $! > /tmp/podman-service.pid
+                sleep 3
+              fi
+            else
+              echo "Starting podman service..."
+              nohup podman system service -t 0 > /tmp/podman-service.log 2>&1 &
+              echo $! > /tmp/podman-service.pid
+              sleep 3
+            fi
+            podman info
+
         - name: Run Molecule integration tests
           run: |
             cd extensions
+            export XDG_RUNTIME_DIR="/run/user/$(id -u)"
             molecule test -s integration
           env:
             ANSIBLE_FORCE_COLOR: '1'
             PY_COLORS: '1'
             MOLECULE_PROJECT_DIRECTORY: ${{ github.workspace }}/extensions
+            XDG_RUNTIME_DIR: /run/user/$(id -u)
 
         - name: Upload test results
           if: always()
