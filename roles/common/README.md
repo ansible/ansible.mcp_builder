@@ -4,7 +4,7 @@ Sets up a generic MCP build environment with automatic dependency detection and 
 
 ## Features
 
-- **Automatic dependency detection** - Installs Go, Node.js/npm, and uv/uvx based on discovered MCP servers
+- **Automatic dependency detection** - Installs Go, Node.js/npm, and uv based on discovered MCP servers
 - **MCP server registry system** - Unified registry where any role can contribute server definitions
 - **Manifest generation** - Creates `/opt/mcp/mcpservers.json` with all server details
 - **Management script** - Provides `mcp_manage` command-line tool for server execution
@@ -28,7 +28,7 @@ The common role uses a registry system to discover MCP servers from all roles. E
 ### Server "Languages" Supported
 
 - **`npm`** - Packages installed via npm and executed with `npx`
-- **`pypi`** - Python packages installed with `uv tool install` and executed with `uvx`
+- **`pypi`** - Python packages installed with `uv tool install` (executables in `/opt/mcp/bin/`)
 - **`go`** - Source builds compiled to `/opt/mcp/bin/`
 
 ## Generated Files

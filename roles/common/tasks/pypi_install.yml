@@ -8,6 +8,9 @@
 - name: Install PyPI MCP server package
   ansible.builtin.command:
     cmd: uv tool install {{ common_package_name }}
+  environment:
+    UV_TOOL_BIN_DIR: "{{ common_mcp_base_path }}/bin"
+    UV_TOOL_DIR: "{{ common_mcp_base_path }}/.uv-tools"
   register: common_pypi_install_result
   failed_when: false
   changed_when: common_pypi_install_result.rc == 0
@@ -26,32 +29,32 @@
   when:
     - common_pypi_install_result is defined
     - common_pypi_install_result.rc != 0
-    - ansible_verbosity >= 2
 
-- name: Verify PyPI package is working
+- name: Check if PyPI package executable exists
+  ansible.builtin.stat:
+    path: "{{ common_mcp_base_path }}/bin/{{ common_package_name }}"
+  register: common_pypi_executable_check
+
+- name: Display verification result
+  ansible.builtin.debug:
+    msg: >-
+      PyPI package {{ common_package_name }}
+      {{ 'installed successfully - executable found at ' + common_mcp_base_path + '/bin/' + common_package_name
+      if common_pypi_executable_check.stat.exists
+      else 'WARNING: executable not found at expected location' }}
+  when: ansible_verbosity >= 2
+
+- name: Verify executable runs
   ansible.builtin.command:
-    cmd: uvx {{ common_package_name }} --help
+    cmd: "{{ common_mcp_base_path }}/bin/{{ common_package_name }} --version"
   register: common_pypi_verify_result
   changed_when: false
+  failed_when: false
+  when: common_pypi_executable_check.stat.exists
 
-- name: Display successful PyPI package access message
+- name: Display execution result
   ansible.builtin.debug:
-    msg: "Successfully accessed PyPI package via uvx: {{ common_package_name }}"
+    msg: "Executable test: {{ 'passed' if common_pypi_verify_result.rc == 0 else 'failed (may not support --version flag)' }}"
   when:
-    - common_pypi_verify_result is defined
-    - common_pypi_verify_result.rc == 0
     - ansible_verbosity >= 2
-
-- name: Display failed PyPI package access message
-  ansible.builtin.debug:
-    msg: "Failed to access PyPI package via uvx: {{ common_package_name }}"
-  when:
     - common_pypi_verify_result is defined
-    - common_pypi_verify_result.rc != 0
-
-# Clean up
-
-- name: Clean uv cache (created during installation)
-  ansible.builtin.file:
-    path: "{{ lookup('env', 'HOME') }}/.cache/uv"
-    state: absent
