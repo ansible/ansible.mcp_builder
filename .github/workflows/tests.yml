@@ -102,7 +102,7 @@
     integration-tests:
       name: Integration Tests
       runs-on: ubuntu-latest
-      needs: [ansible-lint, build-test-image]  # Wait for image to be ready
+      needs: [ansible-lint, build-test-image]
 
       steps:
         - name: Checkout code
@@ -113,70 +113,47 @@
           with:
             python-version: '3.11'
 
-        - name: Install dependencies
+        - name: Install Molecule + Podman + Ansible deps
           run: |
             pip install ansible-core molecule molecule-plugins[podman]
             sudo apt-get update
-            sudo apt-get install -y podman
+            sudo apt-get install -y podman uidmap
+            ansible-galaxy collection install containers.podman ansible.posix --force
 
-        - name: Log in to GHCR
-          uses: docker/login-action@v3
-          with:
-            registry: ghcr.io
-            username: ${{ github.actor }}
-            password: ${{ secrets.GITHUB_TOKEN }}
+        - name: Configure Podman Rootless
+          run: |
+            export XDG_RUNTIME_DIR="/run/user/$(id -u)"
+            mkdir -p $XDG_RUNTIME_DIR
+            sudo chown -R $USER:$USER $XDG_RUNTIME_DIR
+
+            # Enable Podman API service (needed by molecule-podman)
+            podman system service -t 0 &
+            sleep 3
+            podman info
+
+        - name: Log in to GHCR for Podman
+          run: |
+            echo "${{ secrets.GITHUB_TOKEN }}" \
+            | podman login ghcr.io --username ${{ github.actor }} --password-stdin
 
         - name: Pull pre-built test image
           run: |
             IMAGE_TAG="${{ needs.build-test-image.outputs.image_tag }}"
-            echo "Pulling image: $IMAGE_TAG"
+            echo "Pulling: $IMAGE_TAG"
             podman pull "$IMAGE_TAG"
-
-            # Verify image was pulled
-            podman images | grep mcp-builder-test-base || (echo "Image not found after pull" && exit 1)
-
-        - name: Start podman service (GitHub Actions compatible)
-          run: |
-            # Create runtime directory for podman rootless
-            sudo mkdir -p /run/user/$(id -u)
-            sudo chown -R $USER:$USER /run/user/$(id -u)
-
-            # Start podman API service in background (no systemd required)
-            podman system service -t 0 &
-
-            sleep 3
-            podman info
-
-        - name: Verify podman is working
-          run: |
-            podman info
-            podman ps
-            # Ensure podman socket is accessible
-            sudo chmod 666 /run/podman/podman.sock || true
-            # Test podman can create a container
-            podman run --rm --name test-container ghcr.io/ansible/mcp-builder-test-base:latest echo "Podman test" || true
+            podman images | grep mcp-builder-test-base
 
         - name: Update molecule.yml with correct image tag
           run: |
-            # Update molecule.yml to use the correct image tag (PR-specific or latest)
             cd extensions/molecule/integration
             IMAGE_TAG="${{ needs.build-test-image.outputs.image_tag }}"
             sed -i "s|image:.*|image: $IMAGE_TAG|" molecule.yml
-            echo "Updated molecule.yml to use image: $IMAGE_TAG"
-            cat molecule.yml | grep image:
+            echo "Updated molecule.yml:"
+            grep image: molecule.yml
 
         - name: Run Molecule integration tests
           run: |
             cd extensions
-            # Verify molecule scenario exists
-            if [ ! -f "molecule/integration/molecule.yml" ]; then
-              echo "molecule.yml not found at molecule/integration/molecule.yml"
-              ls -la molecule/ || echo "molecule/ directory not found"
-              exit 1
-            fi
-            echo "Found molecule.yml at molecule/integration/molecule.yml"
-            # Run molecule with explicit scenario name (using -s flag)
-            # Note: Don't use --destroy=always since destroy is in test_sequence
             molecule test -s integration
           env:
             ANSIBLE_FORCE_COLOR: '1'

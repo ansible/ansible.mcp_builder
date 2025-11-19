@@ -11,7 +11,7 @@ platforms:
   - name: mcp-test-instance
     image: ghcr.io/ansible/mcp-builder-test-base:latest
     pre_build_image: true
-    pull: if-not-present # Use local if available, pull from GHCR if needed (works for both local and CI)
+    pull: if-not-present
     command: /bin/bash -c "tail -f /dev/null"
     privileged: true # Required for podman connection plugin to work properly
     volumes:
