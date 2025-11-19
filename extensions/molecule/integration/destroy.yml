@@ -1,0 +1,12 @@
+---
+# Destroy playbook for integration scenario
+# For podman driver, this is optional - the driver handles container destruction
+# But having this file prevents Molecule from looking for it and failing
+- name: Destroy
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  tasks:
+    - name: Destroy is handled by podman driver
+      ansible.builtin.debug:
+        msg: "Container destruction is handled automatically by podman driver"

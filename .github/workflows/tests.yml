@@ -166,7 +166,8 @@
             fi
             echo "Found molecule.yml at molecule/integration/molecule.yml"
             # Run molecule with explicit scenario name (using -s flag)
-            molecule test -s integration --destroy=always
+            # Note: Don't use --destroy=always since destroy is in test_sequence
+            molecule test -s integration
           env:
             ANSIBLE_FORCE_COLOR: '1'
             PY_COLORS: '1'
