@@ -43,5 +43,15 @@ provisioner:
         common_mcp_base_path: /opt/mcp
         azure_mcp_install_path: /opt/mcp
 
+scenario:
+  test_sequence:
+    - dependency
+    - syntax
+    - create
+    - prepare
+    - converge
+    - verify
+    - destroy
+
 verifier:
   name: ansible

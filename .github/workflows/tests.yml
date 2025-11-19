@@ -158,6 +158,14 @@
         - name: Run Molecule integration tests
           run: |
             cd extensions
+            # Verify molecule scenario exists
+            if [ ! -f "molecule/integration/molecule.yml" ]; then
+              echo "molecule.yml not found at molecule/integration/molecule.yml"
+              ls -la molecule/ || echo "molecule/ directory not found"
+              exit 1
+            fi
+            echo "Found molecule.yml at molecule/integration/molecule.yml"
+            # Run molecule with explicit scenario name (using -s flag)
             molecule test -s integration --destroy=always
           env:
             ANSIBLE_FORCE_COLOR: '1'
