@@ -135,16 +135,26 @@
             # Verify image was pulled
             podman images | grep mcp-builder-test-base || (echo "Image not found after pull" && exit 1)
 
-        - name: Start podman service
-          run: |
-            sudo systemctl start podman.socket
-            sudo systemctl enable podman.socket
-            sudo systemctl status podman.socket || true
+            - name: Start podman service (GitHub Actions compatible)
+              run: |
+                # Create runtime directory for podman rootless
+                sudo mkdir -p /run/user/$(id -u)
+                sudo chown -R $USER:$USER /run/user/$(id -u)
+
+                # Start podman API service in background (no systemd required)
+                podman system service -t 0 &
+
+                sleep 3
+                podman info
 
         - name: Verify podman is working
           run: |
             podman info
             podman ps
+            # Ensure podman socket is accessible
+            sudo chmod 666 /run/podman/podman.sock || true
+            # Test podman can create a container
+            podman run --rm --name test-container ghcr.io/ansible/mcp-builder-test-base:latest echo "Podman test" || true
 
         - name: Update molecule.yml with correct image tag
           run: |

@@ -12,10 +12,10 @@ platforms:
     image: ghcr.io/ansible/mcp-builder-test-base:latest
     pre_build_image: true
     pull: if-not-present # Use local if available, pull from GHCR if needed (works for both local and CI)
-    command: /bin/bash -c "while true; do sleep 30; done"
+    command: /bin/bash -c "tail -f /dev/null"
     privileged: false
     volumes:
-      - ${MOLECULE_PROJECT_DIRECTORY}/../..:/workspace:Z
+      - ${MOLECULE_PROJECT_DIRECTORY}/../..:/workspace:rw # Removed :Z SELinux flag (causes issues in GitHub Actions)
     working_dir: /workspace
 
 provisioner:
