@@ -135,17 +135,17 @@
             # Verify image was pulled
             podman images | grep mcp-builder-test-base || (echo "Image not found after pull" && exit 1)
 
-            - name: Start podman service (GitHub Actions compatible)
-              run: |
-                # Create runtime directory for podman rootless
-                sudo mkdir -p /run/user/$(id -u)
-                sudo chown -R $USER:$USER /run/user/$(id -u)
+        - name: Start podman service (GitHub Actions compatible)
+          run: |
+            # Create runtime directory for podman rootless
+            sudo mkdir -p /run/user/$(id -u)
+            sudo chown -R $USER:$USER /run/user/$(id -u)
 
-                # Start podman API service in background (no systemd required)
-                podman system service -t 0 &
-
-                sleep 3
-                podman info
+            # Start podman API service in background (no systemd required)
+            podman system service -t 0 &
+            
+            sleep 3
+            podman info
 
         - name: Verify podman is working
           run: |
