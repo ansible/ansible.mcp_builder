@@ -15,7 +15,7 @@
       {%- elif server_item.lang == 'npm' -%}
         {{ server_item | combine({'path': 'npx --prefix ' + common_mcp_base_path + '/npm_installs ' + server_item.name}) }}
       {%- elif server_item.lang == 'pypi' -%}
-        {{ server_item | combine({'path': 'uvx ' + server_item.name}) }}
+        {{ server_item | combine({'path': common_mcp_base_path + '/bin/' + server_item.name}) }}
       {%- elif server_item.lang == 'go' -%}
         {{ server_item | combine({'path': common_mcp_base_path + '/bin/' + server_item.name}) }}
       {%- else -%}

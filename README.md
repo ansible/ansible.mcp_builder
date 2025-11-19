@@ -57,7 +57,7 @@ The collection uses a unified registry system where roles can contribute MCP ser
 | Type | Description | Path Convention |
 |------|-------------|----------------|
 | `npm` | npm packages | `npx --prefix /opt/mcp/npm_installs {name}` |
-| `pypi` | Python packages via uvx | `uvx {name}` |
+| `pypi` | Python packages | `/opt/mcp/bin/{name}` |
 | `go` | Source builds (any compiled binary) | `/opt/mcp/bin/{name}` |
 
 ### Example Registry Definition
@@ -97,7 +97,7 @@ The generated `/opt/mcp/mcpservers.json` file contains all server definitions:
     },
     "aws-iam-mcp-server": {
         "type": "stdio",
-        "command": "uvx awslabs.iam-mcp-server",
+        "command": "/opt/mcp/bin/awslabs.iam-mcp-server",
         "args": [],
         "package": "awslabs.iam-mcp-server"
     },
