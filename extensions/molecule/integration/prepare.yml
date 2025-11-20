@@ -28,7 +28,15 @@
     - name: Verify collection structure
       ansible.builtin.shell: |
         set -o pipefail
+        echo "=== Collection root ==="
         ls -la /tmp/ansible_collections/ansible/mcp_builder/ | head -10
+        echo ""
+        echo "=== Roles directory ==="
+        ls -la /tmp/ansible_collections/ansible/mcp_builder/roles/ 2>&1 || echo "roles/ NOT found"
+        echo ""
+        echo "=== Common role ==="
+        ls -la /tmp/ansible_collections/ansible/mcp_builder/roles/common/ 2>&1 || echo "roles/common/ NOT found"
+        echo ""
         test -f /tmp/ansible_collections/ansible/mcp_builder/galaxy.yml && echo "galaxy.yml found" || echo "galaxy.yml NOT found"
       register: collection_structure
       changed_when: false
@@ -36,6 +44,17 @@
     - name: Display collection structure
       ansible.builtin.debug:
         var: collection_structure.stdout_lines
+
+    - name: Test if Ansible can find the collection
+      ansible.builtin.shell: |
+        set -o pipefail
+        ANSIBLE_COLLECTIONS_PATH=/tmp/ansible_collections ansible-galaxy collection list | grep mcp_builder || echo "Collection not found by ansible-galaxy"
+      register: ansible_collection_check
+      changed_when: false
+
+    - name: Display Ansible collection check
+      ansible.builtin.debug:
+        var: ansible_collection_check.stdout_lines
 
     - name: Fail if collection not found
       ansible.builtin.fail:
