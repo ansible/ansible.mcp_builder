@@ -6,7 +6,6 @@
   gather_facts: true
 
   tasks:
-    # Use the install_mcp playbook exactly as end-users would
     - name: Run install_mcp playbook
       ansible.builtin.include_role:
         name: ansible.mcp_builder.common
