@@ -5,7 +5,7 @@ dependency:
     requirements-file: ${MOLECULE_SCENARIO_DIRECTORY}/requirements.yml
 
 driver:
-  name: delegated
+  name: default
 
 platforms:
   - name: localhost
