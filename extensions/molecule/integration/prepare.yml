@@ -12,17 +12,30 @@
         state: directory
         mode: "0755"
 
-    - name: Install collection from workspace
-      ansible.builtin.command:
-        cmd: ansible-galaxy collection install /workspace --force
-        chdir: /tmp
-      register: collection_install
-      changed_when: collection_install.rc == 0
+    - name: Copy collection to target location
+      ansible.builtin.copy:
+        src: /workspace/
+        dest: /tmp/ansible_collections/ansible/mcp_builder
+        remote_src: true
+        mode: "0755"
+      register: collection_copy
 
     - name: Verify collection is installed
       ansible.builtin.stat:
         path: /tmp/ansible_collections/ansible/mcp_builder
       register: collection_check
+
+    - name: Verify collection structure
+      ansible.builtin.shell: |
+        set -o pipefail
+        ls -la /tmp/ansible_collections/ansible/mcp_builder/ | head -10
+        test -f /tmp/ansible_collections/ansible/mcp_builder/galaxy.yml && echo "galaxy.yml found" || echo "galaxy.yml NOT found"
+      register: collection_structure
+      changed_when: false
+
+    - name: Display collection structure
+      ansible.builtin.debug:
+        var: collection_structure.stdout_lines
 
     - name: Fail if collection not found
       ansible.builtin.fail:
