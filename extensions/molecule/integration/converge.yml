@@ -26,4 +26,4 @@
 
     - name: Display installed MCP servers
       ansible.builtin.debug:
-        msg: "✅ Installed MCP servers: {{ common_mcp_roles }}"
+        msg: "Installed MCP servers: {{ common_mcp_roles }}"
