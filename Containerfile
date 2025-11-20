@@ -42,6 +42,12 @@ RUN curl -fsSL https://rpm.nodesource.com/setup_20.x | bash - && \
     dnf install -y nodejs && \
     dnf clean all
 
+# Install uv (required for PyPI MCP servers)
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh && \
+    mv ~/.cargo/bin/uv /usr/local/bin/uv || \
+    mv ~/.local/bin/uv /usr/local/bin/uv || true && \
+    uv --version
+
 # Install Python packages
 RUN pip3 install --no-cache-dir --upgrade pip && \
     pip3 install --no-cache-dir \
@@ -60,6 +66,7 @@ RUN ansible --version && \
     go version && \
     node --version && \
     npm --version && \
+    uv --version && \
     python3 --version
 
 CMD ["/bin/bash"]
