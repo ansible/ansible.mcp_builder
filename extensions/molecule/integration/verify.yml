@@ -5,7 +5,6 @@
   gather_facts: false
 
   tasks:
-    # Test 1: Verify manifest file exists and is valid JSON
     - name: Check if mcpservers.json manifest exists
       ansible.builtin.stat:
         path: /opt/mcp/mcpservers.json
@@ -29,7 +28,6 @@
       ansible.builtin.debug:
         msg: "Installed MCP servers: {{ manifest_data.keys() | list }}"
 
-    # Test 2: Verify mcp_manage script exists and is executable
     - name: Check if mcp_manage script exists
       ansible.builtin.stat:
         path: /usr/local/bin/mcp_manage
@@ -43,7 +41,6 @@
         fail_msg: "mcp_manage script is missing or not executable"
         success_msg: "mcp_manage script is present and executable"
 
-    # Test 3: Test mcp_manage list command
     - name: Run mcp_manage list
       ansible.builtin.command:
         cmd: /usr/local/bin/mcp_manage list
@@ -55,7 +52,6 @@
       ansible.builtin.debug:
         var: list_output.stdout_lines
 
-    # Test 3b: Test mcp_manage info command for azmcp
     - name: Run mcp_manage info for azmcp
       ansible.builtin.command:
         cmd: /usr/local/bin/mcp_manage info azmcp
@@ -67,7 +63,6 @@
       ansible.builtin.debug:
         var: info_output.stdout_lines
 
-    # Test 4: Verify Azure MCP (azmcp) is in manifest
     - name: Check Azure MCP is registered
       ansible.builtin.assert:
         that:
@@ -75,7 +70,6 @@
         fail_msg: "Azure MCP server (azmcp) not found in manifest. Found: {{ manifest_data.keys() | list }}"
         success_msg: "Azure MCP server (azmcp) found in manifest"
 
-    # Test 5: Verify Azure MCP configuration
     - name: Get Azure MCP server details
       ansible.builtin.set_fact:
         azure_mcp_config: "{{ manifest_data['azmcp'] }}"
@@ -88,7 +82,6 @@
         fail_msg: "Azure MCP configuration is incomplete"
         success_msg: "Azure MCP configuration is valid"
 
-    # Test 6: Verify all MCP servers are registered in manifest
     - name: Check GitHub MCP is registered
       ansible.builtin.assert:
         that:
@@ -124,7 +117,6 @@
         fail_msg: "AWS Core MCP server not found in manifest. Found: {{ manifest_data.keys() | list }}"
         success_msg: "AWS Core MCP server found in manifest"
 
-    # Test 7: Verify dependencies are installed
     - name: Check Go is installed
       ansible.builtin.command:
         cmd: go version
@@ -149,22 +141,21 @@
         msg: "Node.js version: {{ node_version.stdout }}"
       when: node_version.rc == 0
 
-    # Test 8: Test mcp_manage run command (as per discussion with Alison)
-    - name: Test mcp_manage run for azmcp (with timeout)
+    - name: Test mcp_manage run for azmcp
       ansible.builtin.command:
         cmd: timeout 3 /usr/local/bin/mcp_manage run azmcp 2>&1 || echo "Timeout (expected)"
       register: mcp_run_result
       changed_when: false
       failed_when: false
 
-    - name: Verify mcp_manage run works (timeout is expected)
+    - name: Verify mcp_manage run works
       ansible.builtin.assert:
         that:
           - mcp_run_result.rc in [0, 124, 143] # Success, timeout, or SIGTERM
         fail_msg: "mcp_manage run failed unexpectedly"
         success_msg: "mcp_manage run command works (timeout expected for server startup)"
 
-    - name: Test mcp_manage run for github-mcp-server (with timeout)
+    - name: Test mcp_manage run for github-mcp-server
       ansible.builtin.command:
         cmd: timeout 3 /usr/local/bin/mcp_manage run github-mcp-server 2>&1 || echo "Timeout (expected)"
       register: github_run_result
@@ -187,7 +178,6 @@
         success_msg: "github-mcp-server run command works (timeout expected for server startup)"
       when: "'github-mcp-server' in manifest_data"
 
-    # Test 9: Verify all servers appear in mcp_manage list
     - name: Verify all servers in mcp_manage list output
       ansible.builtin.assert:
         that:
@@ -204,7 +194,6 @@
           Output: {{ list_output.stdout }}
         success_msg: "All 6 MCP servers found in mcp_manage list"
 
-    # Final summary
     - name: Test Summary
       ansible.builtin.debug:
         msg:
@@ -214,7 +203,7 @@
           - "mcp_manage list: ✓"
           - "mcp_manage info: ✓"
           - "mcp_manage run: ✓"
-          - "Azure MCP (azmcp) registered: ✓"
+          - "Azure MCP registered: ✓"
           - "GitHub MCP registered: ✓"
           - "AWS IAM MCP registered: ✓"
           - "AWS CCAPI MCP registered: ✓"
