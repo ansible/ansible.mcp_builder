@@ -144,11 +144,23 @@
       failed_when: false
       when: "'github-mcp-server' in manifest_data"
 
+    - name: Debug github-mcp-server run result
+      ansible.builtin.debug:
+        msg:
+          - "Exit code: {{ github_run_result.rc }}"
+          - "Stdout: {{ github_run_result.stdout }}"
+          - "Stderr: {{ github_run_result.stderr }}"
+      when: "'github-mcp-server' in manifest_data"
+
     - name: Verify github-mcp-server can run
       ansible.builtin.assert:
         that:
           - github_run_result.rc in [0, 124, 143]
-        fail_msg: "github-mcp-server run failed unexpectedly"
+        fail_msg: >
+          github-mcp-server run failed unexpectedly.
+          Exit code: {{ github_run_result.rc }}
+          Output: {{ github_run_result.stdout }}
+          Error: {{ github_run_result.stderr }}
         success_msg: "github-mcp-server run command works"
       when: "'github-mcp-server' in manifest_data"
 
