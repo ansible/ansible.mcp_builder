@@ -159,14 +159,6 @@ jobs:
             podman pull "$IMAGE_TAG"
             podman images | grep mcp-builder-test-base
 
-        - name: Update molecule.yml with correct image tag
-          run: |
-            cd extensions/molecule/integration
-            IMAGE_TAG="${{ needs.build-test-image.outputs.image_tag }}"
-            sed -i "s|image:.*|image: $IMAGE_TAG|" molecule.yml
-            echo "Updated molecule.yml:"
-            grep image: molecule.yml
-
         - name: Launch pre-built test container
           run: |
             export XDG_RUNTIME_DIR="/run/user/$(id -u)"
