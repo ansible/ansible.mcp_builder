@@ -173,16 +173,23 @@ jobs:
               tail -f /dev/null
             echo "Container started: $(podman ps | grep mcp-test-container)"
 
+            # Verify Molecule is installed in container
+            echo "=== Verifying Molecule installation ==="
+            podman exec mcp-test-container molecule --version || echo "Molecule not found"
+            podman exec mcp-test-container python3 -c "import molecule; print(molecule.__file__)" || echo "Molecule module not found"
+            podman exec mcp-test-container ls -la /workspace/extensions/molecule/integration/molecule.yml || echo "molecule.yml not found"
+
         - name: Run Molecule integration tests inside container
           run: |
             export XDG_RUNTIME_DIR="/run/user/$(id -u)"
             # Run molecule inside the pre-launched container
+            # Use explicit cd to ensure we're in the right directory
             podman exec -w /workspace/extensions \
               -e ANSIBLE_FORCE_COLOR=1 \
               -e PY_COLORS=1 \
               -e MOLECULE_PROJECT_DIRECTORY=/workspace/extensions \
               mcp-test-container \
-              molecule test -s integration
+              bash -c "cd /workspace/extensions && molecule test -s integration"
 
         - name: Cleanup test container
           if: always()
