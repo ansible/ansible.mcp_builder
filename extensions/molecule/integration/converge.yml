@@ -16,7 +16,7 @@
         name: ansible.mcp_builder.common
         tasks_from: parse_mcp_servers
       vars:
-        mcp_servers: "github_mcp,azure_mcp,aws_iam_mcp" # noqa: var-naming[no-role-prefix]
+        mcp_servers: "github_mcp,azure_mcp,aws_iam_mcp,aws_ccapi_mcp,aws_cdk_mcp,aws_core_mcp" # noqa: var-naming[no-role-prefix]
 
     - name: Install selected MCP providers
       ansible.builtin.include_role:

@@ -88,13 +88,41 @@
         fail_msg: "Azure MCP configuration is incomplete"
         success_msg: "Azure MCP configuration is valid"
 
-    # Test 6: Verify GitHub MCP is also installed (if we installed it)
+    # Test 6: Verify all MCP servers are registered in manifest
     - name: Check GitHub MCP is registered
       ansible.builtin.assert:
         that:
           - "'github-mcp-server' in manifest_data"
         fail_msg: "GitHub MCP server not found in manifest"
         success_msg: "GitHub MCP server found in manifest"
+
+    - name: Check AWS IAM MCP is registered
+      ansible.builtin.assert:
+        that:
+          - "'awslabs.iam-mcp-server' in manifest_data"
+        fail_msg: "AWS IAM MCP server not found in manifest. Found: {{ manifest_data.keys() | list }}"
+        success_msg: "AWS IAM MCP server found in manifest"
+
+    - name: Check AWS CCAPI MCP is registered
+      ansible.builtin.assert:
+        that:
+          - "'awslabs.ccapi-mcp-server' in manifest_data"
+        fail_msg: "AWS CCAPI MCP server not found in manifest. Found: {{ manifest_data.keys() | list }}"
+        success_msg: "AWS CCAPI MCP server found in manifest"
+
+    - name: Check AWS CDK MCP is registered
+      ansible.builtin.assert:
+        that:
+          - "'awslabs.cdk-mcp-server' in manifest_data"
+        fail_msg: "AWS CDK MCP server not found in manifest. Found: {{ manifest_data.keys() | list }}"
+        success_msg: "AWS CDK MCP server found in manifest"
+
+    - name: Check AWS Core MCP is registered
+      ansible.builtin.assert:
+        that:
+          - "'awslabs.core-mcp-server' in manifest_data"
+        fail_msg: "AWS Core MCP server not found in manifest. Found: {{ manifest_data.keys() | list }}"
+        success_msg: "AWS Core MCP server found in manifest"
 
     # Test 7: Verify dependencies are installed
     - name: Check Go is installed
@@ -159,6 +187,23 @@
         success_msg: "github-mcp-server run command works (timeout expected for server startup)"
       when: "'github-mcp-server' in manifest_data"
 
+    # Test 9: Verify all servers appear in mcp_manage list
+    - name: Verify all servers in mcp_manage list output
+      ansible.builtin.assert:
+        that:
+          - "'azmcp' in list_output.stdout"
+          - "'github-mcp-server' in list_output.stdout"
+          - "'awslabs.iam-mcp-server' in list_output.stdout"
+          - "'awslabs.ccapi-mcp-server' in list_output.stdout"
+          - "'awslabs.cdk-mcp-server' in list_output.stdout"
+          - "'awslabs.core-mcp-server' in list_output.stdout"
+        fail_msg: >
+          Not all servers found in mcp_manage list output.
+          Expected: azmcp, github-mcp-server, awslabs.iam-mcp-server,
+          awslabs.ccapi-mcp-server, awslabs.cdk-mcp-server, awslabs.core-mcp-server
+          Output: {{ list_output.stdout }}
+        success_msg: "All 6 MCP servers found in mcp_manage list"
+
     # Final summary
     - name: Test Summary
       ansible.builtin.debug:
@@ -171,4 +216,8 @@
           - "mcp_manage run: ✓"
           - "Azure MCP (azmcp) registered: ✓"
           - "GitHub MCP registered: ✓"
+          - "AWS IAM MCP registered: ✓"
+          - "AWS CCAPI MCP registered: ✓"
+          - "AWS CDK MCP registered: ✓"
+          - "AWS Core MCP registered: ✓"
           - "Dependencies: ✓"
