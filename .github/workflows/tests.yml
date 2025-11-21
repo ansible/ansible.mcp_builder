@@ -180,6 +180,7 @@ jobs:
             podman exec mcp-test-container ls -la /workspace/extensions/molecule/integration/molecule.yml || echo "molecule.yml not found"
 
         - name: Run Molecule integration tests inside container
+          timeout-minutes: 90
           run: |
             export XDG_RUNTIME_DIR="/run/user/$(id -u)"
             # Run molecule inside the pre-launched container

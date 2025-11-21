@@ -31,6 +31,10 @@ RUN dnf install -y --allowerasing \
     podman \
     && dnf clean all
 
+# Configure dnf for faster operations (skip metadata refresh if possible)
+RUN echo "metadata_timer_sync=0" >> /etc/dnf/dnf.conf && \
+    echo "fastestmirror=True" >> /etc/dnf/dnf.conf
+
 # Install Go (required for some MCP servers)
 RUN GO_VERSION=1.21.5 && \
     wget https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz && \
