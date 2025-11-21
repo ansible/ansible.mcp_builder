@@ -1,0 +1,10 @@
+---
+minor_changes:
+  - Add comprehensive upstream testing framework for the collection.
+  - Configure ansible-lint with production profile for code quality checks.
+  - Set up sanity tests for multiple Ansible versions (2.14, 2.15, 2.16).
+  - Add Molecule integration tests for end-to-end MCP server installation validation.
+  - Configure CI/CD pipeline with GitHub Actions workflows.
+  - Add test documentation explaining how to run tests locally.
+  - Create pre-built test base image with all binary dependencies (Go, Node.js, Podman).
+  - Add integration tests that validate manifest file generation and lifecycle management scripts.

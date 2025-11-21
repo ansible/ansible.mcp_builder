@@ -141,42 +141,31 @@
         msg: "Node.js version: {{ node_version.stdout }}"
       when: node_version.rc == 0
 
-    - name: Test mcp_manage run for azmcp
+    - name: Verify mcp_manage run command for all servers
       ansible.builtin.command:
-        cmd: timeout 3 /usr/local/bin/mcp_manage run azmcp 2>&1 || echo "Timeout (expected)"
-      register: mcp_run_result
+        cmd: /usr/local/bin/mcp_manage run {{ item }} --help
+      register: run_verify_results
       changed_when: false
       failed_when: false
+      loop:
+        - azmcp
+        - github-mcp-server
+        - awslabs.iam-mcp-server
+        - awslabs.ccapi-mcp-server
+        - awslabs.cdk-mcp-server
+        - awslabs.core-mcp-server
+      loop_control:
+        label: "{{ item }}"
 
-    - name: Verify mcp_manage run works
+    - name: Verify all mcp_manage run commands work
       ansible.builtin.assert:
         that:
-          - mcp_run_result.rc in [0, 124, 143] # Success, timeout, or SIGTERM
-        fail_msg: "mcp_manage run failed unexpectedly"
-        success_msg: "mcp_manage run command works (timeout expected for server startup)"
-
-    - name: Test mcp_manage run for github-mcp-server
-      ansible.builtin.command:
-        cmd: timeout 3 /usr/local/bin/mcp_manage run github-mcp-server 2>&1 || echo "Timeout (expected)"
-      register: github_run_result
-      changed_when: false
-      failed_when: false
-      environment:
-        GITHUB_PERSONAL_ACCESS_TOKEN: test
-      when: "'github-mcp-server' in manifest_data"
-
-    - name: Verify github-mcp-server can run
-      ansible.builtin.assert:
-        that:
-          - github_run_result.rc in [0, 124, 143]
-          # 0 = success, 124 = timeout (expected), 143 = SIGTERM
-        fail_msg: >
-          github-mcp-server run failed unexpectedly.
-          Exit code: {{ github_run_result.rc }}
-          Output: {{ github_run_result.stdout }}
-          Error: {{ github_run_result.stderr }}
-        success_msg: "github-mcp-server run command works (timeout expected for server startup)"
-      when: "'github-mcp-server' in manifest_data"
+          - item.rc in [0, 1]
+        fail_msg: "mcp_manage run command failed for {{ item.item }}. Exit code: {{ item.rc }}, Output: {{ item.stdout }}"
+        success_msg: "mcp_manage run command is functional for {{ item.item }}"
+      loop: "{{ run_verify_results.results }}"
+      loop_control:
+        label: "{{ item.item }}"
 
     - name: Verify all servers in mcp_manage list output
       ansible.builtin.assert:

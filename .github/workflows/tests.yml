@@ -7,8 +7,6 @@ on: # yamllint disable-line rule:truthy
   pull_request:
     branches: [main]
   workflow_dispatch:
-  # schedule:
-  #   - cron: '0 0 * * *'
 
 permissions:
   contents: read
@@ -124,27 +122,6 @@ jobs:
             mkdir -p $XDG_RUNTIME_DIR
             sudo chown -R $USER:$USER $XDG_RUNTIME_DIR
 
-        - name: Enable Podman Service (GitHub Actions compatible)
-          run: |
-            export XDG_RUNTIME_DIR="/run/user/$(id -u)"
-            # Start podman API service in background (no systemd needed)
-            nohup podman system service -t 0 > /tmp/podman-service.log 2>&1 &
-            echo $! > /tmp/podman-service.pid
-            sleep 5
-            podman info
-            echo "Podman service started, PID: $(cat /tmp/podman-service.pid)"
-
-        - name: Install Molecule + Ansible deps
-          run: |
-            pip install ansible-core molecule molecule-plugins[podman]
-            ansible-galaxy collection install containers.podman ansible.posix --force
-
-        - name: Test Podman
-          run: |
-            export XDG_RUNTIME_DIR="/run/user/$(id -u)"
-            podman info
-            podman ps
-
         - name: Log in to GHCR for Podman
           run: |
             export XDG_RUNTIME_DIR="/run/user/$(id -u)"
@@ -155,9 +132,7 @@ jobs:
           run: |
             export XDG_RUNTIME_DIR="/run/user/$(id -u)"
             IMAGE_TAG="${{ needs.build-test-image.outputs.image_tag }}"
-            echo "Pulling: $IMAGE_TAG"
             podman pull "$IMAGE_TAG"
-            podman images | grep mcp-builder-test-base
 
         - name: Launch pre-built test container
           run: |
@@ -171,16 +146,8 @@ jobs:
               -e MOLECULE_PROJECT_DIRECTORY=/workspace/extensions \
               "$IMAGE_TAG" \
               tail -f /dev/null
-            echo "Container started: $(podman ps | grep mcp-test-container)"
-
-            # Verify Molecule is installed in container
-            echo "=== Verifying Molecule installation ==="
-            podman exec mcp-test-container molecule --version || echo "Molecule not found"
-            podman exec mcp-test-container python3 -c "import molecule; print(molecule.__file__)" || echo "Molecule module not found"
-            podman exec mcp-test-container ls -la /workspace/extensions/molecule/integration/molecule.yml || echo "molecule.yml not found"
 
         - name: Run Molecule integration tests inside container
-          timeout-minutes: 90
           run: |
             export XDG_RUNTIME_DIR="/run/user/$(id -u)"
             # Run molecule inside the pre-launched container
