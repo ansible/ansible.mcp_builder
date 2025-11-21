@@ -1,6 +1,4 @@
 ---
-# Integration Test - Install MCP servers using install_mcp playbook
-# This replicates the exact user workflow as discussed with Alison
 - name: Install and configure MCP Servers
   hosts: all
   gather_facts: true

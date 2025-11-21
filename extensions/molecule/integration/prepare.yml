@@ -1,6 +1,5 @@
 ---
 # Prepare playbook - Install the collection in the test container
-# Collections are installed via dependency phase (requirements.yml)
 # This playbook just installs our collection and sets up paths
 - name: Prepare test environment
   hosts: all

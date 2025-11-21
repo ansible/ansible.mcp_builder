@@ -31,7 +31,6 @@ provisioner:
         ansible_python_interpreter: /usr/bin/python3
         ansible_user: root
         ansible_become: false
-        # MCP installation variables
         common_mcp_base_path: /opt/mcp
         azure_mcp_install_path: /opt/mcp
 
@@ -39,11 +38,11 @@ scenario:
   test_sequence:
     - dependency
     - syntax
-    - create # No-op with delegated driver (container already running)
+    - create
     - prepare
     - converge
     - verify
-    - destroy # No-op with delegated driver (CI will clean up)
+    - destroy
 
 verifier:
   name: ansible

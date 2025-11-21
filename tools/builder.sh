@@ -6,7 +6,6 @@ IMAGE_TAG="ghcr.io/ansible/mcp-builder-test-base:latest"
 PUSH_IMAGE=false
 RUN_TESTS=false
 
-# Get repo root (script is in tools/, so go up one level)
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 
 # Parse arguments
@@ -45,39 +44,12 @@ if [ "$RUN_TESTS" = true ]; then
   echo ""
   echo "Running Molecule Integration Tests"
   echo "======================================"
-  # Find podman socket (works for both Linux and macOS)
-  PODMAN_SOCKET=$(podman info --format '{{.Host.RemoteSocket.Path}}' 2>/dev/null || echo "")
-  if [ -z "$PODMAN_SOCKET" ] || [ ! -S "$PODMAN_SOCKET" ]; then
-    # Try common locations
-    for sock in /run/podman/podman.sock ~/.local/share/containers/podman/machine/podman-machine-default/podman.sock; do
-      if [ -S "$sock" ]; then
-        PODMAN_SOCKET="$sock"
-        break
-      fi
-    done
-  fi
-
-  # Mount podman socket and binary for container-in-container
-  if [ -n "$PODMAN_SOCKET" ] && [ -S "$PODMAN_SOCKET" ]; then
-    echo "Using podman socket: $PODMAN_SOCKET"
-    podman run --rm \
-      -v "$REPO_ROOT:/workspace:Z" \
-      -v "$PODMAN_SOCKET:/run/podman/podman.sock:Z" \
-      --privileged \
-      -w /workspace/extensions \
-      -e MOLECULE_PROJECT_DIRECTORY=/workspace/extensions \
-      $IMAGE_TAG \
-      molecule test -s integration --destroy=always
-  else
-    echo "Podman socket not found. Running without socket mount (may not work)."
-    podman run --rm \
-      -v "$REPO_ROOT:/workspace:Z" \
-      --privileged \
-      -w /workspace/extensions \
-      -e MOLECULE_PROJECT_DIRECTORY=/workspace/extensions \
-      $IMAGE_TAG \
-      molecule test -s integration --destroy=always
-  fi
+  podman run --rm \
+    -v "$REPO_ROOT:/workspace:Z" \
+    -w /workspace/extensions \
+    -e MOLECULE_PROJECT_DIRECTORY=/workspace/extensions \
+    $IMAGE_TAG \
+    molecule test -s integration --destroy=always
   echo ""
   echo "Tests completed!"
 fi

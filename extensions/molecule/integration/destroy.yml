@@ -1,7 +1,4 @@
 ---
-# Destroy playbook for integration scenario
-# For podman driver, this is optional - the driver handles container destruction
-# But having this file prevents Molecule from looking for it and failing
 - name: Destroy
   hosts: localhost
   connection: local
