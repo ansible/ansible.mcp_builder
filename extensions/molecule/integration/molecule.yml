@@ -1,0 +1,48 @@
+---
+dependency:
+  name: galaxy
+  options:
+    requirements-file: ${MOLECULE_SCENARIO_DIRECTORY}/requirements.yml
+
+driver:
+  name: default
+
+platforms:
+  - name: localhost
+
+provisioner:
+  name: ansible
+  config_options:
+    defaults:
+      callbacks_enabled: ansible.posix.profile_tasks
+      stdout_callback: default
+      result_format: yaml
+      allow_broken_conditionals: true
+      remote_tmp: /tmp
+      collections_paths:
+        - /tmp/ansible_collections
+  env:
+    ANSIBLE_ALLOW_BROKEN_CONDITIONALS: "true"
+    ANSIBLE_COLLECTIONS_PATH: /tmp/ansible_collections
+  inventory:
+    host_vars:
+      localhost:
+        ansible_connection: local
+        ansible_python_interpreter: /usr/bin/python3
+        ansible_user: root
+        ansible_become: false
+        common_mcp_base_path: /opt/mcp
+        azure_mcp_install_path: /opt/mcp
+
+scenario:
+  test_sequence:
+    - dependency
+    - syntax
+    - create
+    - prepare
+    - converge
+    - verify
+    - destroy
+
+verifier:
+  name: ansible

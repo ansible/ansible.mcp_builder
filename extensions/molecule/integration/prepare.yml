@@ -1,0 +1,89 @@
+---
+# Prepare playbook - Install the collection in the test container
+# This playbook just installs our collection and sets up paths
+- name: Prepare test environment
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Ensure collection directory exists
+      ansible.builtin.file:
+        path: /tmp/ansible_collections/ansible
+        state: directory
+        mode: "0755"
+
+    - name: Copy collection to target location
+      ansible.builtin.copy:
+        src: /workspace/
+        dest: /tmp/ansible_collections/ansible/mcp_builder
+        remote_src: true
+        mode: "0755"
+      register: collection_copy
+
+    - name: Verify collection is installed
+      ansible.builtin.stat:
+        path: /tmp/ansible_collections/ansible/mcp_builder
+      register: collection_check
+
+    - name: Verify collection structure
+      ansible.builtin.shell: |
+        set -o pipefail
+        echo "=== Collection root ==="
+        ls -la /tmp/ansible_collections/ansible/mcp_builder/ | head -10
+        echo ""
+        echo "=== Roles directory ==="
+        ls -la /tmp/ansible_collections/ansible/mcp_builder/roles/ 2>&1 || echo "roles/ NOT found"
+        echo ""
+        echo "=== Common role ==="
+        ls -la /tmp/ansible_collections/ansible/mcp_builder/roles/common/ 2>&1 || echo "roles/common/ NOT found"
+        echo ""
+        test -f /tmp/ansible_collections/ansible/mcp_builder/galaxy.yml && echo "galaxy.yml found" || echo "galaxy.yml NOT found"
+      register: collection_structure
+      changed_when: false
+
+    - name: Display collection structure
+      ansible.builtin.debug:
+        var: collection_structure.stdout_lines
+
+    - name: Test if Ansible can find the collection
+      ansible.builtin.shell: |
+        set -o pipefail
+        ANSIBLE_COLLECTIONS_PATH=/tmp/ansible_collections ansible-galaxy collection list | grep mcp_builder || echo "Collection not found by ansible-galaxy"
+      register: ansible_collection_check
+      changed_when: false
+
+    - name: Display Ansible collection check
+      ansible.builtin.debug:
+        var: ansible_collection_check.stdout_lines
+
+    - name: Fail if collection not found
+      ansible.builtin.fail:
+        msg: "Collection not installed at /tmp/ansible_collections/ansible/mcp_builder"
+      when: not collection_check.stat.exists
+
+    - name: Also install collection to default location for Ansible to find
+      ansible.builtin.command:
+        cmd: ansible-galaxy collection install /workspace --force -p /root/.ansible/collections
+      register: default_install
+      changed_when: default_install.rc == 0
+      failed_when: default_install.rc != 0
+      ignore_errors: true
+
+    - name: Alternative - Copy collection to default location
+      ansible.builtin.copy:
+        src: /workspace/
+        dest: /root/.ansible/collections/ansible_collections/ansible/mcp_builder
+        remote_src: true
+        mode: "0755"
+      when: default_install.rc != 0
+      register: default_copy
+
+    - name: Verify collection in default location
+      ansible.builtin.stat:
+        path: /root/.ansible/collections/ansible_collections/ansible/mcp_builder
+      register: default_collection_check
+
+    - name: Display collection locations
+      ansible.builtin.debug:
+        msg:
+          - "Collection in /tmp: {{ collection_check.stat.exists }}"
+          - "Collection in default: {{ default_collection_check.stat.exists }}"

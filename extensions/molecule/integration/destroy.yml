@@ -1,0 +1,9 @@
+---
+- name: Destroy
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  tasks:
+    - name: Destroy is handled by podman driver
+      ansible.builtin.debug:
+        msg: "Container destruction is handled automatically by podman driver"

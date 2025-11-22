@@ -1,0 +1,26 @@
+---
+- name: Install and configure MCP Servers
+  hosts: all
+  gather_facts: true
+
+  tasks:
+    - name: Run install_mcp playbook
+      ansible.builtin.include_role:
+        name: ansible.mcp_builder.common
+
+    - name: Parse mcp_servers input
+      ansible.builtin.include_role:
+        name: ansible.mcp_builder.common
+        tasks_from: parse_mcp_servers
+      vars:
+        mcp_servers: "github_mcp,azure_mcp,aws_iam_mcp,aws_ccapi_mcp,aws_cdk_mcp,aws_core_mcp" # noqa: var-naming[no-role-prefix]
+
+    - name: Install selected MCP providers
+      ansible.builtin.include_role:
+        name: "ansible.mcp_builder.{{ item }}"
+      loop: "{{ common_mcp_roles }}"
+      when: do_installation | default(true)
+
+    - name: Display installed MCP servers
+      ansible.builtin.debug:
+        msg: "Installed MCP servers: {{ common_mcp_roles }}"
