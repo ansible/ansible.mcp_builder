@@ -75,6 +75,5 @@
           run: |
             docker pull ${{ steps.tag.outputs.image_tag }}
             docker run --rm ${{ steps.tag.outputs.image_tag }} ansible --version
-            docker run --rm ${{ steps.tag.outputs.image_tag }} go version
-            docker run --rm ${{ steps.tag.outputs.image_tag }} node --version
+            docker run --rm ${{ steps.tag.outputs.image_tag }} python3 --version
             echo "Image built and tested successfully: ${{ steps.tag.outputs.image_tag }}"
