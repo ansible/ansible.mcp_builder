@@ -19,6 +19,7 @@ RUN dnf install -y --allowerasing \
     python3 \
     python3-pip \
     python3-devel \
+    python3-dnf \
     git \
     gcc \
     make \
@@ -26,41 +27,21 @@ RUN dnf install -y --allowerasing \
     curl \
     jq \
     podman \
+    tar \
+    libicu \
     && dnf clean all
-
-RUN echo "metadata_timer_sync=0" >> /etc/dnf/dnf.conf && \
-    echo "fastestmirror=True" >> /etc/dnf/dnf.conf
-
-RUN GO_VERSION=1.21.5 && \
-    wget https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz && \
-    tar -C /usr/local -xzf go${GO_VERSION}.linux-amd64.tar.gz && \
-    rm go${GO_VERSION}.linux-amd64.tar.gz
-
-RUN curl -fsSL https://rpm.nodesource.com/setup_20.x | bash - && \
-    dnf install -y nodejs && \
-    dnf clean all
-
-RUN curl -LsSf https://astral.sh/uv/install.sh | sh && \
-    mv ~/.cargo/bin/uv /usr/local/bin/uv || \
-    mv ~/.local/bin/uv /usr/local/bin/uv || true && \
-    uv --version
 
 RUN pip3 install --no-cache-dir --upgrade pip && \
     pip3 install --no-cache-dir \
     ansible-core>=2.14 \
     molecule \
     molecule-plugins[podman] \
-    ansible-lint \
     pytest \
     pytest-ansible
 
 RUN mkdir -p /opt/mcp /workspace /go /tmp/go-cache
 
 RUN ansible --version && \
-    go version && \
-    node --version && \
-    npm --version && \
-    uv --version && \
     python3 --version
 
 CMD ["/bin/bash"]

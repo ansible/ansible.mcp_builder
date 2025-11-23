@@ -94,8 +94,7 @@ jobs:
           run: |
             docker pull ${{ steps.determine.outputs.image_tag }}
             docker run --rm ${{ steps.determine.outputs.image_tag }} ansible --version
-            docker run --rm ${{ steps.determine.outputs.image_tag }} go version
-            docker run --rm ${{ steps.determine.outputs.image_tag }} node --version
+            docker run --rm ${{ steps.determine.outputs.image_tag }} python3 --version
 
   integration-tests:
     name: Integration Tests
@@ -190,7 +189,7 @@ jobs:
             echo "Ansible Lint: ${{ needs.ansible-lint.result }}"
             echo "Sanity Tests: ${{ needs.sanity.result }}"
             echo "Unit Tests: ${{ needs.unit-galaxy.result }}"
-            echo "Integration Tests: ${{ needs.integration-tests.result }}"
+            echo "Integration: ${{ needs.integration-tests.result }}"
             echo "Changelog: ${{ needs.changelog.result }}"
             echo "Build Import: ${{ needs.build-import.result }}"
 
