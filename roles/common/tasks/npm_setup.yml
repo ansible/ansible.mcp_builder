@@ -1,5 +1,11 @@
 ---
 # Node.js and npm setup tasks
+# Note: UBI9 doesn't have nodejs in default repos, so we need to set up NodeSource repo first
+- name: Set up NodeSource repository
+  ansible.builtin.include_tasks: nodesource_setup.yml
+  vars:
+    nodesource_version: "{{ common_nodejs_min_version | default(20) }}"
+
 - name: Install Node.js and npm via system package manager
   ansible.builtin.package:
     name:

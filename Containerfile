@@ -39,8 +39,6 @@ RUN pip3 install --no-cache-dir --upgrade pip && \
     pytest \
     pytest-ansible
 
-RUN curl -fsSL https://rpm.nodesource.com/setup_20.x | bash - || true
-
 RUN mkdir -p /opt/mcp /workspace /go /tmp/go-cache
 
 RUN ansible --version && \
