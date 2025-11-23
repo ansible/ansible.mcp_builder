@@ -8,9 +8,7 @@
 
 - name: Install Node.js and npm via system package manager
   ansible.builtin.package:
-    name:
-      - nodejs
-      - npm
+    name: nodejs
     state: present
   become: true
 

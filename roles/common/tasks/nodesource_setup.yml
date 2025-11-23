@@ -15,6 +15,13 @@
     creates: /etc/yum.repos.d/nodesource*.repo
   become: true
 
+- name: Refresh dnf cache after adding NodeSource repository
+  ansible.builtin.command:
+    cmd: dnf makecache
+  become: true
+  changed_when: false
+  failed_when: false
+
 - name: Clean up NodeSource setup script
   ansible.builtin.file:
     path: /tmp/nodesource_setup.sh
