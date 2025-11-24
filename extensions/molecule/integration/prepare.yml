@@ -5,6 +5,12 @@
   hosts: all
   gather_facts: false
   tasks:
+    - name: Ensure molecule-plugins[podman] is installed
+      ansible.builtin.pip:
+        name: molecule-plugins[podman]
+        state: present
+      become: true
+      failed_when: false
     - name: Ensure collection directory exists
       ansible.builtin.file:
         path: /tmp/ansible_collections/ansible
@@ -65,8 +71,7 @@
         cmd: ansible-galaxy collection install /workspace --force -p /root/.ansible/collections
       register: default_install
       changed_when: default_install.rc == 0
-      failed_when: default_install.rc != 0
-      ignore_errors: true
+      failed_when: false
 
     - name: Alternative - Copy collection to default location
       ansible.builtin.copy:

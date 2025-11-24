@@ -96,82 +96,9 @@ jobs:
             docker run --rm ${{ steps.determine.outputs.image_tag }} ansible --version
             docker run --rm ${{ steps.determine.outputs.image_tag }} python3 --version
 
-  integration-tests:
-    name: Integration Tests
-    runs-on: ubuntu-latest
+  integration:
+    uses: ansible/ansible-content-actions/.github/workflows/integration.yaml@main
     needs: [ansible-lint, build-test-image]
-
-    steps:
-        - name: Checkout code
-          uses: actions/checkout@v4
-
-        - name: Set up Python
-          uses: actions/setup-python@v5
-          with:
-            python-version: '3.11'
-
-        - name: Install Podman
-          run: |
-            sudo apt-get update
-            sudo apt-get install -y podman uidmap
-
-        - name: Setup Podman Rootless Environment
-          run: |
-            export XDG_RUNTIME_DIR="/run/user/$(id -u)"
-            mkdir -p $XDG_RUNTIME_DIR
-            sudo chown -R $USER:$USER $XDG_RUNTIME_DIR
-
-        - name: Log in to GHCR for Podman
-          run: |
-            export XDG_RUNTIME_DIR="/run/user/$(id -u)"
-            echo "${{ secrets.GITHUB_TOKEN }}" \
-            | podman login ghcr.io --username ${{ github.actor }} --password-stdin
-
-        - name: Pull pre-built test image
-          run: |
-            export XDG_RUNTIME_DIR="/run/user/$(id -u)"
-            IMAGE_TAG="${{ needs.build-test-image.outputs.image_tag }}"
-            podman pull "$IMAGE_TAG"
-
-        - name: Launch pre-built test container
-          run: |
-            export XDG_RUNTIME_DIR="/run/user/$(id -u)"
-            IMAGE_TAG="${{ needs.build-test-image.outputs.image_tag }}"
-            # Launch container and keep it running
-            podman run -d \
-              --name mcp-test-container \
-              -v ${{ github.workspace }}:/workspace:rw \
-              -w /workspace/extensions \
-              -e MOLECULE_PROJECT_DIRECTORY=/workspace/extensions \
-              "$IMAGE_TAG" \
-              tail -f /dev/null
-
-        - name: Run Molecule integration tests inside container
-          run: |
-            export XDG_RUNTIME_DIR="/run/user/$(id -u)"
-            # Run molecule inside the pre-launched container
-            # Use explicit cd to ensure we're in the right directory
-            podman exec -w /workspace/extensions \
-              -e ANSIBLE_FORCE_COLOR=1 \
-              -e PY_COLORS=1 \
-              -e MOLECULE_PROJECT_DIRECTORY=/workspace/extensions \
-              mcp-test-container \
-              bash -c "cd /workspace/extensions && molecule test -s integration"
-
-        - name: Cleanup test container
-          if: always()
-          run: |
-            export XDG_RUNTIME_DIR="/run/user/$(id -u)"
-            podman rm -f mcp-test-container || true
-
-        - name: Upload test results
-          if: always()
-          uses: actions/upload-artifact@v4
-          with:
-            name: molecule-test-results
-            path: |
-              extensions/molecule/integration/*.log
-              extensions/.molecule/
 
   all_green:
     if: ${{ always() }}
@@ -180,7 +107,7 @@ jobs:
       - build-import
       - sanity
       - unit-galaxy
-      - integration-tests
+      - integration
       - ansible-lint
     runs-on: ubuntu-latest
     steps:
@@ -189,7 +116,7 @@ jobs:
             echo "Ansible Lint: ${{ needs.ansible-lint.result }}"
             echo "Sanity Tests: ${{ needs.sanity.result }}"
             echo "Unit Tests: ${{ needs.unit-galaxy.result }}"
-            echo "Integration: ${{ needs.integration-tests.result }}"
+            echo "Integration: ${{ needs.integration.result }}"
             echo "Changelog: ${{ needs.changelog.result }}"
             echo "Build Import: ${{ needs.build-import.result }}"
 
@@ -197,7 +124,7 @@ jobs:
             if [ "${{ needs.ansible-lint.result }}" != "success" ] || \
                [ "${{ needs.sanity.result }}" != "success" ] || \
                [ "${{ needs.unit-galaxy.result }}" != "success" ] || \
-               [ "${{ needs.integration-tests.result }}" != "success" ]; then
+               [ "${{ needs.integration.result }}" != "success" ]; then
               echo "Some tests failed"
               exit 1
             else
