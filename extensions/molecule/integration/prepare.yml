@@ -11,6 +11,21 @@
         state: present
       become: true
       failed_when: false
+    - name: Detect collection root
+      ansible.builtin.set_fact:
+        collection_root: >-
+          {{ lookup('env', 'MOLECULE_PROJECT_DIRECTORY') | default(lookup('env', 'GITHUB_WORKSPACE')) | default(playbook_dir + '/../..') }}
+
+    - name: Ensure galaxy.yml exists
+      ansible.builtin.stat:
+        path: "{{ collection_root }}/galaxy.yml"
+      register: galaxy_yml_check
+
+    - name: Fail if galaxy.yml missing
+      ansible.builtin.fail:
+        msg: "galaxy.yml not found at {{ collection_root }}"
+      when: not galaxy_yml_check.stat.exists
+
     - name: Ensure collection directory exists
       ansible.builtin.file:
         path: /tmp/ansible_collections/ansible
@@ -19,7 +34,7 @@
 
     - name: Copy collection to target location
       ansible.builtin.copy:
-        src: /workspace/
+        src: "{{ collection_root }}/"
         dest: /tmp/ansible_collections/ansible/mcp_builder
         remote_src: true
         mode: "0755"
@@ -68,14 +83,14 @@
 
     - name: Also install collection to default location for Ansible to find
       ansible.builtin.command:
-        cmd: ansible-galaxy collection install /workspace --force -p /root/.ansible/collections
+        cmd: ansible-galaxy collection install "{{ collection_root }}" --force -p /root/.ansible/collections
       register: default_install
       changed_when: default_install.rc == 0
       failed_when: false
 
     - name: Alternative - Copy collection to default location
       ansible.builtin.copy:
-        src: /workspace/
+        src: "{{ collection_root }}/"
         dest: /root/.ansible/collections/ansible_collections/ansible/mcp_builder
         remote_src: true
         mode: "0755"
