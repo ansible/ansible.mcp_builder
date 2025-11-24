@@ -9,35 +9,58 @@
 - name: Install uv
   ansible.builtin.shell: |
     set -o pipefail
-    /tmp/uv-install.sh 2>&1
+    /tmp/uv-install.sh
   args:
     executable: /bin/bash
   register: common_pypi_installed_result
   changed_when: common_pypi_installed_result.rc == 0
 
-# NEW — Print logs of the installation
-- name: Show uv installation logs
-  ansible.builtin.debug:
-    var: common_pypi_installed_result.stdout
-  when: common_pypi_installed_result.stdout is defined
+# DEBUG: Show target HOME and control node HOME
+- name: Get target user's HOME directory
+  ansible.builtin.shell: echo $HOME
+  register: common_target_home
+  changed_when: false
+  failed_when: false
 
+- name: Debug target HOME and control node HOME
+  ansible.builtin.debug:
+    msg: |
+      Control node HOME (lookup): {{ lookup('env', 'HOME') }}
+      Target user HOME (from shell): {{ common_target_home.stdout }}
+      Will check these paths for uv:
+        - {{ lookup('env', 'HOME') }}/.cargo/bin/uv
+        - {{ lookup('env', 'HOME') }}/.local/bin/uv
+        - {{ common_target_home.stdout }}/.cargo/bin/uv
+        - {{ common_target_home.stdout }}/.local/bin/uv
+        - {{ common_system_bin_path }}/uv
+        - /usr/bin/uv
+# DEBUG END
 - name: Check common uv installation locations
   ansible.builtin.stat:
     path: "{{ uv_path_item }}"
   loop:
     - "{{ lookup('env', 'HOME') }}/.cargo/bin/uv"
     - "{{ lookup('env', 'HOME') }}/.local/bin/uv"
+    - "{{ common_target_home.stdout }}/.cargo/bin/uv"
+    - "{{ common_target_home.stdout }}/.local/bin/uv"
     - "{{ common_system_bin_path }}/uv"
     - "/usr/bin/uv"
-    - "/root/.local/bin/uv"
   loop_control:
     loop_var: uv_path_item
   register: common_uv_location_check
 
-# DEBUG: Show uv tree output
-- name: Debug | Show uv tree output
+# DEBUG: Show uv location check results
+- name: Debug uv location check results
   ansible.builtin.debug:
-    var: common_uv_tree_output.stdout
+    msg: |
+      Checking path: {{ item.uv_path_item }}
+      Exists: {{ item.stat.exists | default('N/A') }}
+      Executable: {{ item.stat.executable | default('N/A') }}
+  loop: "{{ common_uv_location_check.results }}"
+  loop_control:
+    loop_var: item
+  when: common_uv_path is not defined
+# DEBUG END
 
 - name: Set uv path from common locations
   ansible.builtin.set_fact:
@@ -53,13 +76,15 @@
 
 - name: Search for uv binary in home directory as fallback
   ansible.builtin.find:
-    paths: "{{ lookup('env', 'HOME') }}"
+    paths: "{{ common_target_home.stdout }}"
     patterns: "uv"
     file_type: file
     recurse: true
   register: common_uv_search_fallback
   when:
     - common_uv_path is not defined
+    - common_target_home.stdout is defined
+    - common_target_home.stdout != ""
 
 - name: Set uv path from search fallback
   ansible.builtin.set_fact:
