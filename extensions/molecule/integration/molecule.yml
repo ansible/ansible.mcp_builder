@@ -30,7 +30,7 @@ provisioner:
         ansible_connection: local
         ansible_python_interpreter: /usr/bin/python3
         ansible_user: root
-        ansible_become: false
+        ansible_become: true
         common_mcp_base_path: /opt/mcp
         azure_mcp_install_path: /opt/mcp
 
