@@ -29,37 +29,12 @@
     - "{{ lookup('env', 'HOME') }}/.local/bin/uv"
     - "{{ common_system_bin_path }}/uv"
     - "/usr/bin/uv"
+    - "/root/.local/bin/uv"
   loop_control:
     loop_var: uv_path_item
   register: common_uv_location_check
 
-# ---- DEBUG: Stat uv binary directly ----
-- name: Debug | Stat uv binary directly
-  ansible.builtin.stat:
-    path: "{{ lookup('env','HOME') }}/.local/bin/uv"
-  register: common_uv_direct_stat
-
-- name: Debug | Show uv stat result
-  ansible.builtin.debug:
-    var: common_uv_direct_stat
-
-# ---- DEBUG: ls -l directory ----
-- name: Debug | List files in uv install directory
-  ansible.builtin.command: ls -l {{ lookup('env','HOME') }}/.local/bin
-  register: common_uv_ls_output
-  changed_when: false
-
-- name: Debug | Show uv ls output
-  ansible.builtin.debug:
-    var: common_uv_ls_output.stdout
-
-# ---- DEBUG: recursive tree ----
-- name: Debug | Show recursive tree of uv install directory
-  ansible.builtin.shell: |
-    ls -lR {{ lookup('env','HOME') }}/.local/bin
-  register: common_uv_tree_output
-  changed_when: false
-
+# DEBUG: Show uv tree output
 - name: Debug | Show uv tree output
   ansible.builtin.debug:
     var: common_uv_tree_output.stdout
