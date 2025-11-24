@@ -9,9 +9,14 @@
 - name: Install uv
   ansible.builtin.shell: |
     set -o pipefail
+    export CARGO_HOME="${HOME}/.cargo"
+    export PATH="${HOME}/.cargo/bin:${HOME}/.local/bin:${PATH}"
     /tmp/uv-install.sh
   args:
     executable: /bin/bash
+  environment:
+    CARGO_HOME: "{{ lookup('env', 'HOME') }}/.cargo"
+    PATH: "{{ lookup('env', 'HOME') }}/.cargo/bin:{{ lookup('env', 'HOME') }}/.local/bin:{{ lookup('env', 'PATH') }}"
   register: common_pypi_installed_result
   changed_when: common_pypi_installed_result.rc == 0
   failed_when: common_pypi_installed_result.rc != 0
@@ -22,7 +27,7 @@
       UV installer exit code: {{ common_pypi_installed_result.rc }}
       UV installer stdout: {{ common_pypi_installed_result.stdout }}
       UV installer stderr: {{ common_pypi_installed_result.stderr }}
-  when: ansible_verbosity >= 1
+  when: common_uv_path is not defined
 
 - name: Check common uv installation locations
   ansible.builtin.stat:
@@ -91,6 +96,8 @@
     force: true
   become: true
   when:
+    - common_uv_path is defined
+    - common_uv_path.stdout is defined
     - common_uv_path.stdout != ""
 
 - name: Verify uv installation
