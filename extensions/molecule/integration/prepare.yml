@@ -98,29 +98,6 @@
         msg: "Collection not installed at /tmp/ansible_collections/ansible/mcp_builder"
       when: not collection_check.stat.exists
 
-    - name: Also install collection to default location for Ansible to find
-      ansible.builtin.command:
-        cmd: ansible-galaxy collection install "{{ collection_root }}" --force -p /root/.ansible/collections
-      register: default_install
-      changed_when: default_install.rc == 0
-      failed_when: false
-
-    - name: Alternative - Copy collection to default location
-      ansible.builtin.copy:
-        src: "{{ collection_root }}/"
-        dest: /root/.ansible/collections/ansible_collections/ansible/mcp_builder
-        remote_src: true
-        mode: "0755"
-      when: default_install.rc != 0
-      register: default_copy
-
-    - name: Verify collection in default location
-      ansible.builtin.stat:
-        path: /root/.ansible/collections/ansible_collections/ansible/mcp_builder
-      register: default_collection_check
-
-    - name: Display collection locations
+    - name: Display collection location
       ansible.builtin.debug:
-        msg:
-          - "Collection in /tmp: {{ collection_check.stat.exists }}"
-          - "Collection in default: {{ default_collection_check.stat.exists }}"
+        msg: "Collection installed at /tmp/ansible_collections/ansible/mcp_builder (accessible via ANSIBLE_COLLECTIONS_PATH)"
