@@ -13,8 +13,21 @@
       failed_when: false
     - name: Detect collection root
       ansible.builtin.set_fact:
+        molecule_dir: "{{ lookup('env', 'MOLECULE_PROJECT_DIRECTORY') | default('') }}"
+        github_workspace: "{{ lookup('env', 'GITHUB_WORKSPACE') | default('') }}"
+
+    - name: Set collection root based on detected paths
+      ansible.builtin.set_fact:
         collection_root: >-
-          {{ lookup('env', 'MOLECULE_PROJECT_DIRECTORY') | default(lookup('env', 'GITHUB_WORKSPACE')) | default(playbook_dir + '/../..') }}
+          {%- if molecule_dir and molecule_dir.endswith('/extensions') -%}
+            {{ molecule_dir | dirname }}
+          {%- elif molecule_dir -%}
+            {{ molecule_dir }}
+          {%- elif github_workspace -%}
+            {{ github_workspace }}
+          {%- else -%}
+            {{ playbook_dir }}/../..
+          {%- endif -%}
 
     - name: Ensure galaxy.yml exists
       ansible.builtin.stat:
@@ -23,7 +36,7 @@
 
     - name: Fail if galaxy.yml missing
       ansible.builtin.fail:
-        msg: "galaxy.yml not found at {{ collection_root }}"
+        msg: "galaxy.yml not found at {{ collection_root }}. MOLECULE_PROJECT_DIRECTORY={{ molecule_dir }}, GITHUB_WORKSPACE={{ github_workspace }}"
       when: not galaxy_yml_check.stat.exists
 
     - name: Ensure collection directory exists
