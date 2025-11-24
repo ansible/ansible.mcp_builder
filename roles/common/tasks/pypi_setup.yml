@@ -15,26 +15,12 @@
   register: common_pypi_installed_result
   changed_when: common_pypi_installed_result.rc == 0
 
-# DEBUG: Show target HOME and control node HOME
 - name: Get target user's HOME directory
   ansible.builtin.shell: echo $HOME
   register: common_target_home
   changed_when: false
   failed_when: false
 
-- name: Debug target HOME and control node HOME
-  ansible.builtin.debug:
-    msg: |
-      Control node HOME (lookup): {{ lookup('env', 'HOME') }}
-      Target user HOME (from shell): {{ common_target_home.stdout }}
-      Will check these paths for uv:
-        - {{ lookup('env', 'HOME') }}/.cargo/bin/uv
-        - {{ lookup('env', 'HOME') }}/.local/bin/uv
-        - {{ common_target_home.stdout }}/.cargo/bin/uv
-        - {{ common_target_home.stdout }}/.local/bin/uv
-        - {{ common_system_bin_path }}/uv
-        - /usr/bin/uv
-# DEBUG END
 - name: Check common uv installation locations
   ansible.builtin.stat:
     path: "{{ uv_path_item }}"
@@ -48,19 +34,6 @@
   loop_control:
     loop_var: uv_path_item
   register: common_uv_location_check
-
-# DEBUG: Show uv location check results
-- name: Debug uv location check results
-  ansible.builtin.debug:
-    msg: |
-      Checking path: {{ item.uv_path_item }}
-      Exists: {{ item.stat.exists | default('N/A') }}
-      Executable: {{ item.stat.executable | default('N/A') }}
-  loop: "{{ common_uv_location_check.results }}"
-  loop_control:
-    loop_var: item
-  when: common_uv_path is not defined
-# DEBUG END
 
 - name: Set uv path from common locations
   ansible.builtin.set_fact:

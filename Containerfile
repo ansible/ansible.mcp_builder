@@ -38,13 +38,10 @@ RUN pip3 install --no-cache-dir --upgrade pip && \
     pytest \
     pytest-ansible
 
-# Pre-configure NodeSource repository (without installing Node.js)
-# Create /etc/redhat-release if missing (required for NodeSource script detection)
 RUN if [ ! -f /etc/redhat-release ]; then \
       echo "Red Hat Enterprise Linux release 9.0 (Plow)" > /etc/redhat-release; \
     fi
 
-# Set up NodeSource repository with proper environment variables
 RUN DISTRO=rhel RELEASE=9 bash -c 'curl -fsSL https://rpm.nodesource.com/setup_20.x | bash -' || \
     echo "Warning: NodeSource setup may have failed, but continuing build"
 

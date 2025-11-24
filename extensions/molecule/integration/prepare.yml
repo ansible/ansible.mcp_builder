@@ -1,6 +1,6 @@
 ---
 # Prepare playbook - Install the collection in the test container
-# This playbook just installs our collection and sets up paths
+
 - name: Prepare test environment
   hosts: all
   gather_facts: false
