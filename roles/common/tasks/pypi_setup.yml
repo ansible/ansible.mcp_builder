@@ -14,6 +14,15 @@
     executable: /bin/bash
   register: common_pypi_installed_result
   changed_when: common_pypi_installed_result.rc == 0
+  failed_when: common_pypi_installed_result.rc != 0
+
+- name: Debug uv installer output
+  ansible.builtin.debug:
+    msg: |
+      UV installer exit code: {{ common_pypi_installed_result.rc }}
+      UV installer stdout: {{ common_pypi_installed_result.stdout }}
+      UV installer stderr: {{ common_pypi_installed_result.stderr }}
+  when: ansible_verbosity >= 1
 
 - name: Check common uv installation locations
   ansible.builtin.stat:
@@ -38,6 +47,23 @@
   when:
     - uv_check_item.stat.exists
     - uv_check_item.stat.executable
+
+- name: Check if uv is in PATH
+  ansible.builtin.command: which uv
+  register: common_uv_which
+  changed_when: false
+  failed_when: false
+  when: common_uv_path is not defined
+
+- name: Set uv path from PATH
+  ansible.builtin.set_fact:
+    common_uv_path:
+      stdout: "{{ common_uv_which.stdout }}"
+  when:
+    - common_uv_path is not defined
+    - common_uv_which.rc == 0
+    - common_uv_which.stdout is defined
+    - common_uv_which.stdout != ""
 
 - name: Search for uv binary in home directory as fallback
   ansible.builtin.find:
@@ -65,7 +91,6 @@
     force: true
   become: true
   when:
-    - common_uv_path is defined
     - common_uv_path.stdout != ""
 
 - name: Verify uv installation
