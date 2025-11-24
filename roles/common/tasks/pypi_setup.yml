@@ -64,7 +64,9 @@
     state: link
     force: true
   become: true
-  when: common_uv_path.stdout != ""
+  when:
+    - common_uv_path is defined
+    - common_uv_path.stdout != ""
 
 - name: Verify uv installation
   ansible.builtin.command: uv --version
