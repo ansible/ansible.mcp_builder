@@ -33,6 +33,35 @@
     loop_var: uv_path_item
   register: common_uv_location_check
 
+- name: Debug uv installation stat results
+  ansible.builtin.debug:
+    var: common_uv_location_check
+
+- name: Stat uv binary directly
+  ansible.builtin.stat:
+    path: "{{ lookup('env','HOME') }}/.local/bin/uv"
+  register: uv_direct_stat
+
+- debug:
+    var: uv_direct_stat
+
+- name: List files in uv install directory
+  ansible.builtin.command: ls -l {{ lookup('env','HOME') }}/.local/bin
+  register: uv_ls_output
+  changed_when: false
+
+- debug:
+    var: uv_ls_output.stdout
+
+- name: Show recursive tree of uv install directory
+  ansible.builtin.shell: |
+    ls -lR {{ lookup('env','HOME') }}/.local/bin
+  register: uv_tree_output
+  changed_when: false
+
+- debug:
+    var: uv_tree_output.stdout
+
 - name: Set uv path from common locations
   ansible.builtin.set_fact:
     common_uv_path:
