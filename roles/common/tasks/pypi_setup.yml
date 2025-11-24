@@ -101,9 +101,11 @@
     - common_uv_path.stdout != ""
 
 - name: Verify uv installation
-  ansible.builtin.command: uv --version
+  ansible.builtin.command: "{{ (common_uv_path.stdout if (common_uv_path is defined and common_uv_path.stdout is defined) else '/usr/local/bin/uv') }} --version"
   register: common_uv_version_output
   changed_when: false
+  environment:
+    PATH: "/usr/local/bin:{{ lookup('env', 'PATH') }}"
 
 - name: Assert uv is working
   ansible.builtin.assert:
