@@ -9,25 +9,17 @@
 - name: Install uv
   ansible.builtin.shell: |
     set -o pipefail
-    export CARGO_HOME="${HOME}/.cargo"
-    export PATH="${HOME}/.cargo/bin:${HOME}/.local/bin:${PATH}"
-    /tmp/uv-install.sh
+    /tmp/uv-install.sh 2>&1
   args:
     executable: /bin/bash
-  environment:
-    CARGO_HOME: "{{ lookup('env', 'HOME') }}/.cargo"
-    PATH: "{{ lookup('env', 'HOME') }}/.cargo/bin:{{ lookup('env', 'HOME') }}/.local/bin:{{ lookup('env', 'PATH') }}"
   register: common_pypi_installed_result
   changed_when: common_pypi_installed_result.rc == 0
-  failed_when: common_pypi_installed_result.rc != 0
 
-- name: Debug uv installer output
+# NEW — Print logs of the installation
+- name: Show uv installation logs
   ansible.builtin.debug:
-    msg: |
-      UV installer exit code: {{ common_pypi_installed_result.rc }}
-      UV installer stdout: {{ common_pypi_installed_result.stdout }}
-      UV installer stderr: {{ common_pypi_installed_result.stderr }}
-  when: common_uv_path is not defined
+    var: common_pypi_installed_result.stdout
+  when: common_pypi_installed_result.stdout is defined
 
 - name: Check common uv installation locations
   ansible.builtin.stat:
@@ -52,23 +44,6 @@
   when:
     - uv_check_item.stat.exists
     - uv_check_item.stat.executable
-
-- name: Check if uv is in PATH
-  ansible.builtin.command: which uv
-  register: common_uv_which
-  changed_when: false
-  failed_when: false
-  when: common_uv_path is not defined
-
-- name: Set uv path from PATH
-  ansible.builtin.set_fact:
-    common_uv_path:
-      stdout: "{{ common_uv_which.stdout }}"
-  when:
-    - common_uv_path is not defined
-    - common_uv_which.rc == 0
-    - common_uv_which.stdout is defined
-    - common_uv_which.stdout != ""
 
 - name: Search for uv binary in home directory as fallback
   ansible.builtin.find:
@@ -95,21 +70,12 @@
     state: link
     force: true
   become: true
-  when:
-    - common_uv_path is defined
-    - common_uv_path.stdout is defined
-    - common_uv_path.stdout != ""
+  when: common_uv_path.stdout != ""
 
 - name: Verify uv installation
-  ansible.builtin.command: >-
-    {{
-      (common_uv_path.stdout if (common_uv_path is defined and
-      common_uv_path.stdout is defined) else '/usr/local/bin/uv')
-    }} --version
+  ansible.builtin.command: uv --version
   register: common_uv_version_output
   changed_when: false
-  environment:
-    PATH: "/usr/local/bin:{{ lookup('env', 'PATH') }}"
 
 - name: Assert uv is working
   ansible.builtin.assert:
