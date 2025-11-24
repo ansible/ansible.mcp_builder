@@ -71,6 +71,8 @@
         ls -la /tmp/ansible_collections/ansible/mcp_builder/roles/common/ 2>&1 || echo "roles/common/ NOT found"
         echo ""
         test -f /tmp/ansible_collections/ansible/mcp_builder/galaxy.yml && echo "galaxy.yml found" || echo "galaxy.yml NOT found"
+      args:
+        executable: /bin/bash
       register: collection_structure
       changed_when: false
 
@@ -82,6 +84,8 @@
       ansible.builtin.shell: |
         set -o pipefail
         ANSIBLE_COLLECTIONS_PATH=/tmp/ansible_collections ansible-galaxy collection list | grep mcp_builder || echo "Collection not found by ansible-galaxy"
+      args:
+        executable: /bin/bash
       register: ansible_collection_check
       changed_when: false
 
