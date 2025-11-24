@@ -3,7 +3,7 @@
 
 - name: Set NodeSource script URL based on OS
   ansible.builtin.set_fact:
-    nodesource_setup_url: >-
+    common_nodesource_setup_url: >-
       {% if ansible_os_family == 'RedHat' %}
       https://rpm.nodesource.com/setup_{{ nodesource_version | default('20') }}.x
       {% else %}
@@ -12,7 +12,7 @@
 
 - name: Download NodeSource setup script
   ansible.builtin.get_url:
-    url: "{{ nodesource_setup_url }}"
+    url: "{{ common_nodesource_setup_url }}"
     dest: /tmp/nodesource_setup.sh
     mode: "0755"
   become: true
@@ -20,7 +20,9 @@
 - name: Run NodeSource setup script
   ansible.builtin.command:
     cmd: bash /tmp/nodesource_setup.sh
+    creates: /etc/yum.repos.d/nodesource*.repo
   become: true
+  changed_when: false
 
 # Only for RedHat-based distros
 - name: Refresh dnf cache
