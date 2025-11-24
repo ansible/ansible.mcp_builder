@@ -15,20 +15,19 @@ ENV PATH=/root/.local/bin:/usr/local/go/bin:${GOPATH}/bin:${PATH}
 USER root
 WORKDIR /workspace
 
+COPY bindep.txt /workspace/bindep.txt
+
+RUN dnf install -y --allowerasing python3 python3-pip && dnf clean all
+
+RUN pip3 install --no-cache-dir bindep
+
 RUN dnf install -y --allowerasing \
-    python3 \
-    python3-pip \
     python3-devel \
-    python3-dnf \
-    git \
-    gcc \
     make \
     wget \
     curl \
-    jq \
     podman \
-    tar \
-    libicu \
+    $(bindep -b /workspace/bindep.txt -f /workspace/bindep.txt 2>/dev/null | grep -v "^#" | tr '\n' ' ') \
     && dnf clean all
 
 RUN pip3 install --no-cache-dir --upgrade pip && \
