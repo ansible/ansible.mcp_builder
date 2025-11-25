@@ -1,14 +1,14 @@
 # Shared task: Set up NodeSource repository for Node.js installation
 # This is used by both npm_install.yml and npm_setup.yml
 
-# - name: Set NodeSource script URL based on OS
-#   ansible.builtin.set_fact:
-#     common_nodesource_setup_url: >-
-#       {% if ansible_os_family == 'RedHat' %}
-#       https://rpm.nodesource.com/setup_{{ nodesource_version | default('20') }}.x
-#       {% else %}
-#       https://deb.nodesource.com/setup_{{ nodesource_version | default('20') }}.x
-#       {% endif %}
+- name: Set NodeSource script URL based on OS
+  ansible.builtin.set_fact:
+    common_nodesource_setup_url: >-
+      {% if ansible_os_family == 'RedHat' %}
+      https://rpm.nodesource.com/setup_{{ nodesource_version | default('20') }}.x
+      {% else %}
+      https://deb.nodesource.com/setup_{{ nodesource_version | default('20') }}.x
+      {% endif %}
 
 - name: Download NodeSource setup script
   ansible.builtin.get_url:
@@ -25,12 +25,12 @@
   changed_when: false
 
 # Only for RedHat-based distros
-# - name: Refresh dnf cache
-#   ansible.builtin.command: dnf makecache
-#   become: true
-#   changed_when: false
-#   failed_when: false
-#   when: ansible_os_family == 'RedHat'
+- name: Refresh dnf cache
+  ansible.builtin.command: dnf makecache
+  become: true
+  changed_when: false
+  failed_when: false
+  when: ansible_os_family == 'RedHat'
 
 - name: Clean up NodeSource setup script
   ansible.builtin.file:
