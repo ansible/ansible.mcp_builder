@@ -16,13 +16,11 @@ This collection uses a comprehensive testing framework including:
 │ - System dependencies from bindep.txt │
 │ - Ansible + Molecule installed │
 └─────────────────────────────────────────────────┘
-│
 ↓
 ┌─────────────────────────────────────────────────┐
 │ Podman launches container │
 │ Mounts collection code │
 └─────────────────────────────────────────────────┘
-│
 ↓
 ┌─────────────────────────────────────────────────┐
 │ Molecule runs inside container │
@@ -102,12 +100,12 @@ molecule test -s integration --destroy never
 molecule login -s integration
 
 # Note: The integration test installs all 6 MCP servers:
-# - github-mcp-server (Go)
-# - azure-mcp-server (Go)
-# - aws-iam-mcp-server (PyPI)
-# - aws-ccapi-mcp-server (PyPI)
-# - aws-cdk-mcp-server (npm)
-# - aws-core-mcp-server (npm)
+# - github-mcp-server
+# - azure-mcp-server
+# - aws-iam-mcp-server
+# - aws-ccapi-mcp-server
+# - aws-cdk-mcp-server
+# - aws-core-mcp-server
 ```
 
 ### 5. Run Individual Test Scenarios
@@ -240,8 +238,6 @@ The test base image (`ghcr.io/ansible/mcp-builder-test-base`) is built from `Con
 - [x] All MCP servers can be installed successfully
 - [x] Manifest generation is validated
 - [x] mcp_manage script functionality is tested
-- [ ] Cross-platform testing (UBI8, Ubuntu) - Currently UBI9 only
-- [ ] Error handling scenarios are tested
 
 ## Resources
 

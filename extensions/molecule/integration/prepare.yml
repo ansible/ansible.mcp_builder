@@ -3,8 +3,24 @@
 
 - name: Prepare test environment
   hosts: all
-  gather_facts: false
+  gather_facts: true
   tasks:
+    # DEBUG: Verify execution environment
+    - name: Verify where tasks are executing (DEBUG)
+      ansible.builtin.debug:
+        msg:
+          - "=== TASK EXECUTION ENVIRONMENT ==="
+          - "OS Family: {{ ansible_os_family }}"
+          - "Distribution: {{ ansible_distribution }}"
+          - "Distribution Version: {{ ansible_distribution_version }}"
+          - "Hostname: {{ ansible_hostname }}"
+          - "User: {{ ansible_user_id }}"
+          - "HOME: {{ ansible_env.HOME | default('N/A') }}"
+          - "Python: {{ ansible_python_version }}"
+          - "Ansible Connection: {{ ansible_connection }}"
+          - "================================="
+      when: ansible_verbosity >= 0
+    # DEBUG END
     - name: Ensure molecule-plugins[podman] is installed
       ansible.builtin.pip:
         name: molecule-plugins[podman]
