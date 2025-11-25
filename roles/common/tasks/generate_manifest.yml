@@ -22,6 +22,7 @@
   register: common_manifest_exists
 
 - name: Read and parse existing manifest
+  when: common_manifest_exists.stat.exists
   block:
     - name: Slurp existing manifest file
       ansible.builtin.slurp:
@@ -31,7 +32,6 @@
     - name: Parse existing manifest content
       ansible.builtin.set_fact:
         common_existing_manifest: "{{ common_manifest_slurp.content | b64decode | from_json }}"
-  when: common_manifest_exists.stat.exists
 
 - name: Generate new manifest entries
   ansible.builtin.set_fact:
