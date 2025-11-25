@@ -5,10 +5,15 @@ dependency:
     requirements-file: ${MOLECULE_SCENARIO_DIRECTORY}/requirements.yml
 
 driver:
-  name: default
+  name: podman
 
 platforms:
-  - name: localhost
+  - name: ubi9-instance
+    image: ${MOLECULE_IMAGE:-ghcr.io/ansible/mcp-builder-test-base:latest}
+    pre_build_image: true
+    privileged: false
+    volumes:
+      - ${MOLECULE_PROJECT_DIRECTORY}/../..:/workspace:Z
 
 provisioner:
   name: ansible
@@ -26,8 +31,7 @@ provisioner:
     ANSIBLE_COLLECTIONS_PATH: /tmp/ansible_collections
   inventory:
     host_vars:
-      localhost:
-        ansible_connection: local
+      ubi9-instance:
         ansible_python_interpreter: /usr/bin/python3
         ansible_user: root
         ansible_become: true
