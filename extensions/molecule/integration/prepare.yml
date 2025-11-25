@@ -76,10 +76,6 @@
       register: collection_structure
       changed_when: false
 
-    - name: Display collection structure
-      ansible.builtin.debug:
-        var: collection_structure.stdout_lines
-
     - name: Test if Ansible can find the collection
       ansible.builtin.shell: |
         set -o pipefail

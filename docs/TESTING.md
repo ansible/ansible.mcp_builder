@@ -12,8 +12,8 @@ This collection uses a comprehensive testing framework including:
 
 ┌─────────────────────────────────────────────────┐
 │ Pre-built Test Base Image (GHCR) │
-│ - UBI9 base │
-│ - Go, Node.js, Python installed │
+│ - UBI9 base (Python 3.11) │
+│ - System dependencies from bindep.txt │
 │ - Ansible + Molecule installed │
 └─────────────────────────────────────────────────┘
 │
@@ -26,8 +26,9 @@ This collection uses a comprehensive testing framework including:
 ↓
 ┌─────────────────────────────────────────────────┐
 │ Molecule runs inside container │
-│ 1. Converge: Install MCP servers │
-│ 2. Verify: Validate installation │
+│ 1. Prepare: Install collection │
+│ 2. Converge: Install MCP servers (installs deps) │
+│ 3. Verify: Validate installation & functionality │
 └─────────────────────────────────────────────────┘
 
 ## Prerequisites
@@ -50,7 +51,7 @@ pip install -r requirements-test.txt
 
 ```bash
 # Build locally
-podman build -f .devcontainer/Containerfile -t ghcr.io/ansible/mcp-builder-test-base:latest .devcontainer/
+podman build -f Containerfile -t localhost/mcp-builder-test-base:local .
 
 # Or pull from GHCR (if already built)
 podman pull ghcr.io/ansible/mcp-builder-test-base:latest
@@ -83,14 +84,15 @@ ansible-test sanity --docker default -v
 ### 4. Run Molecule Integration Tests
 
 ```bash
-# Full test suite (create, converge, verify, destroy)
+# Full test suite (dependency, syntax, create, prepare, converge, verify, destroy)
 cd extensions
 molecule test -s integration
 
 # Step-by-step for debugging
-molecule create -s integration      # Create container
-molecule converge -s integration    # Run installation
-molecule verify -s integration      # Run validation tests
+molecule create -s integration      # Create container from pre-built image
+molecule prepare -s integration     # Install collection and dependencies
+molecule converge -s integration    # Install all MCP servers (installs Go, Node.js, uv)
+molecule verify -s integration      # Validate installation & mcp_manage script
 molecule destroy -s integration     # Clean up
 
 # Keep container running for debugging
@@ -98,6 +100,14 @@ molecule test -s integration --destroy never
 
 # Login to test container for manual debugging
 molecule login -s integration
+
+# Note: The integration test installs all 6 MCP servers:
+# - github-mcp-server (Go)
+# - azure-mcp-server (Go)
+# - aws-iam-mcp-server (PyPI)
+# - aws-ccapi-mcp-server (PyPI)
+# - aws-cdk-mcp-server (npm)
+# - aws-core-mcp-server (npm)
 ```
 
 ### 5. Run Individual Test Scenarios
@@ -150,6 +160,8 @@ node --version
 
 ```bash
 # Solution: Build or pull the image
+podman build -f Containerfile -t localhost/mcp-builder-test-base:local .
+# Or pull from GHCR
 podman pull ghcr.io/ansible/mcp-builder-test-base:latest
 ```
 
@@ -166,9 +178,18 @@ volumes:
 
 ```bash
 # Check:
-1. Image is pushed to GHCR
-2. Workflow has correct permissions
-3. GITHUB_TOKEN has packages:write scope
+1. Image is pushed to GHCR with correct tag
+2. Workflow has correct permissions (packages:write)
+3. Reusable workflow is using correct image tag
+4. Python/Ansible version matrix is compatible
+```
+
+#### Issue: Molecule driver not found
+
+```bash
+# Solution: Ensure molecule-plugins[podman] is installed
+pip install molecule-plugins[podman]
+# Or use tox which installs it automatically
 ```
 
 ## CI/CD Pipeline
@@ -177,17 +198,49 @@ Tests run automatically on:
 
 ### Triggers
 
-- **Pull Requests**: All tests run
-- **Push to main/devel**: All tests + image build
+- **Pull Requests**: All tests run (lint, sanity, integration)
+- **Push to main/devel**: All tests + image build and push to GHCR
 - **Manual**: `workflow_dispatch` for on-demand testing
 
-## Test Coverage Goals
+### Workflow Jobs
 
-- [ ] All roles have passing integration tests
-- [ ] All MCP servers can be installed successfully
-- [ ] Manifest generation is validated
-- [ ] mcp_manage script functionality is tested
-- [ ] Cross-platform testing (UBI8, UBI9, Ubuntu)
+1. **ansible-lint**: Runs `ansible-lint` on all collection content
+2. **unit**: Runs unit tests using reusable `ansible-content-actions` workflow
+3. **build-test-image**: Builds and pushes test base image to GHCR (on PRs and main/devel)
+4. **integration**: Runs Molecule integration tests using reusable `ansible-content-actions` workflow
+   - Tests multiple Python/Ansible version combinations automatically
+   - Uses pre-built test image from GHCR
+   - Runs all Molecule scenarios
+
+### Test Image Build
+
+The test base image (`ghcr.io/ansible/mcp-builder-test-base`) is built from `Containerfile`:
+
+- Base: `registry.access.redhat.com/ubi9/ubi:latest` (Python 3.11)
+- System packages: Installed dynamically from `bindep.txt` using `bindep` tool
+- NodeSource: Pre-configured during image build (repository setup, no Node.js installed)
+- Runtime dependencies: Go, Node.js, and `uv` are installed by the collection during `converge`
+- Ansible/Molecule: Pre-installed for testing
+
+## Test Coverage
+
+- [x] Ansible-lint configuration and passing
+- [x] Sanity tests configured and passing
+- [x] Integration tests for all 6 MCP servers
+- [x] Manifest file generation validation
+- [x] mcp_manage script functionality (list, info, run)
+- [x] CI/CD pipeline with GitHub Actions
+- [x] Tests run automatically on pull requests
+- [x] Pre-built test image with NodeSource pre-configured
+- [x] Runtime dependency installation (Go, Node.js, uv)
+
+### Test Coverage Goals
+
+- [x] All roles have passing integration tests
+- [x] All MCP servers can be installed successfully
+- [x] Manifest generation is validated
+- [x] mcp_manage script functionality is tested
+- [ ] Cross-platform testing (UBI8, Ubuntu) - Currently UBI9 only
 - [ ] Error handling scenarios are tested
 
 ## Resources

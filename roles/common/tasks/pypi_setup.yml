@@ -15,11 +15,11 @@
   register: common_pypi_installed_result
   changed_when: common_pypi_installed_result.rc == 0
 
-# - name: Get target user's HOME directory
-#   ansible.builtin.shell: echo $HOME
-#   register: common_target_home
-#   changed_when: false
-#   failed_when: false
+- name: Get target user's HOME directory
+  ansible.builtin.shell: echo $HOME
+  register: common_target_home
+  changed_when: false
+  failed_when: false
 
 - name: Check common uv installation locations
   ansible.builtin.stat:
