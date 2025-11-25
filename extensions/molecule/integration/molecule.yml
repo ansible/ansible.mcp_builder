@@ -28,13 +28,6 @@ provisioner:
         - /tmp/ansible_collections
   env:
     ANSIBLE_ALLOW_BROKEN_CONDITIONALS: "true"
-    # CRITICAL: Include control node collections paths for connection plugins
-    # The podman connection plugin (from containers.podman) runs on the control node
-    # and needs to be found in the control node's collections paths
-    # We prepend /tmp/ansible_collections for container collections, then append
-    # the existing ANSIBLE_COLLECTIONS_PATH (set by tox) which includes:
-    # - {envtmpdir}/collections (tox environment)
-    # - ~/.ansible/collections (default Ansible path)
     ANSIBLE_COLLECTIONS_PATH: /tmp/ansible_collections:${ANSIBLE_COLLECTIONS_PATH}
   inventory:
     host_vars:

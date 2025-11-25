@@ -4,6 +4,21 @@
   gather_facts: true
 
   tasks:
+    # Verify tasks are executing inside the UBI9 container (not on GitHub runner)
+    - name: Verify execution environment
+      ansible.builtin.debug:
+        msg:
+          - "=== TASK EXECUTION VERIFICATION ==="
+          - "OS Family: {{ ansible_os_family }}"
+          - "Distribution: {{ ansible_distribution }}"
+          - "Distribution Version: {{ ansible_distribution_version }}"
+          - "Hostname: {{ ansible_hostname }}"
+          - "User: {{ ansible_user_id }}"
+          - "Ansible Connection: {{ ansible_connection }}"
+          - "Expected: RedHat/UBI9 (if in container) or Ubuntu (if on GitHub runner)"
+          - "=================================="
+      when: ansible_verbosity >= 1
+
     - name: Run install_mcp playbook
       ansible.builtin.include_role:
         name: ansible.mcp_builder.common
