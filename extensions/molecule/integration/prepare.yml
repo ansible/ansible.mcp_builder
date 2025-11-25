@@ -5,22 +5,6 @@
   hosts: all
   gather_facts: true
   tasks:
-    # DEBUG: Verify execution environment
-    - name: Verify where tasks are executing (DEBUG)
-      ansible.builtin.debug:
-        msg:
-          - "=== TASK EXECUTION ENVIRONMENT ==="
-          - "OS Family: {{ ansible_os_family }}"
-          - "Distribution: {{ ansible_distribution }}"
-          - "Distribution Version: {{ ansible_distribution_version }}"
-          - "Hostname: {{ ansible_hostname }}"
-          - "User: {{ ansible_user_id }}"
-          - "HOME: {{ ansible_env.HOME | default('N/A') }}"
-          - "Python: {{ ansible_python_version }}"
-          - "Ansible Connection: {{ ansible_connection }}"
-          - "================================="
-      when: ansible_verbosity >= 0
-    # DEBUG END
     - name: Ensure molecule-plugins[podman] is installed
       ansible.builtin.pip:
         name: molecule-plugins[podman]
@@ -47,37 +31,6 @@
             {{ playbook_dir }}/../..
           {%- endif -%}
 
-    # DEBUG: Debug collection root detection
-    - name: Debug collection root detection
-      ansible.builtin.debug:
-        msg:
-          - "Collection root detected: {{ collection_root }}"
-          - "Ansible connection: {{ ansible_connection }}"
-          - "MOLECULE_PROJECT_DIRECTORY: {{ molecule_dir }}"
-          - "GITHUB_WORKSPACE: {{ github_workspace }}"
-      when: ansible_verbosity >= 0
-    - name: Debug workspace contents
-      ansible.builtin.shell: |
-        set -o pipefail
-        echo "=== /workspace contents ==="
-        ls -la /workspace/ 2>&1 | head -20 || echo "Cannot list /workspace"
-        echo ""
-        echo "=== Looking for galaxy.yml ==="
-        find /workspace -name "galaxy.yml" -type f 2>&1 | head -5 || echo "galaxy.yml not found"
-        echo ""
-        echo "=== /workspace structure ==="
-        ls -la /workspace/ | grep -E "(galaxy|roles|playbooks|extensions)" || echo "No collection files visible"
-      args:
-        executable: /bin/bash
-      register: workspace_debug
-      changed_when: false
-      when: ansible_verbosity >= 0
-
-    - name: Display workspace debug
-      ansible.builtin.debug:
-        var: workspace_debug.stdout_lines
-      when: ansible_verbosity >= 0
-    # DEBUG END
 
     - name: Ensure galaxy.yml exists
       ansible.builtin.stat:
@@ -108,42 +61,7 @@
         path: /tmp/ansible_collections/ansible/mcp_builder
       register: collection_check
 
-    - name: Verify collection structure
-      ansible.builtin.shell: |
-        set -o pipefail
-        echo "=== Collection root ==="
-        ls -la /tmp/ansible_collections/ansible/mcp_builder/ | head -10
-        echo ""
-        echo "=== Roles directory ==="
-        ls -la /tmp/ansible_collections/ansible/mcp_builder/roles/ 2>&1 || echo "roles/ NOT found"
-        echo ""
-        echo "=== Common role ==="
-        ls -la /tmp/ansible_collections/ansible/mcp_builder/roles/common/ 2>&1 || echo "roles/common/ NOT found"
-        echo ""
-        test -f /tmp/ansible_collections/ansible/mcp_builder/galaxy.yml && echo "galaxy.yml found" || echo "galaxy.yml NOT found"
-      args:
-        executable: /bin/bash
-      register: collection_structure
-      changed_when: false
-
-    - name: Test if Ansible can find the collection
-      ansible.builtin.shell: |
-        set -o pipefail
-        ANSIBLE_COLLECTIONS_PATH=/tmp/ansible_collections ansible-galaxy collection list | grep mcp_builder || echo "Collection not found by ansible-galaxy"
-      args:
-        executable: /bin/bash
-      register: ansible_collection_check
-      changed_when: false
-
-    - name: Display Ansible collection check
-      ansible.builtin.debug:
-        var: ansible_collection_check.stdout_lines
-
     - name: Fail if collection not found
       ansible.builtin.fail:
         msg: "Collection not installed at /tmp/ansible_collections/ansible/mcp_builder"
       when: not collection_check.stat.exists
-
-    - name: Display collection location
-      ansible.builtin.debug:
-        msg: "Collection installed at /tmp/ansible_collections/ansible/mcp_builder (accessible via ANSIBLE_COLLECTIONS_PATH)"

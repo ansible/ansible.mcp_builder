@@ -203,12 +203,14 @@ Tests run automatically on:
 ### Workflow Jobs
 
 1. **ansible-lint**: Runs `ansible-lint` on all collection content
-2. **unit**: Runs unit tests using reusable `ansible-content-actions` workflow
-3. **build-test-image**: Builds and pushes test base image to GHCR (on PRs and main/devel)
-4. **integration**: Runs Molecule integration tests using reusable `ansible-content-actions` workflow
+2. **sanity**: Runs sanity tests using reusable `ansible-content-actions` workflow
+3. **unit-galaxy**: Runs unit tests using reusable `ansible-content-actions` workflow
+4. **build-test-image**: Builds and pushes test base image to GHCR (on PRs and main/devel)
+5. **integration**: Runs Molecule integration tests using reusable `ansible-content-actions` workflow
    - Tests multiple Python/Ansible version combinations automatically
    - Uses pre-built test image from GHCR
    - Runs all Molecule scenarios
+6. **all_green**: Verifies all tests passed successfully
 
 ### Test Image Build
 
@@ -219,6 +221,10 @@ The test base image (`ghcr.io/ansible/mcp-builder-test-base`) is built from `Con
 - NodeSource: Pre-configured during image build (repository setup, no Node.js installed)
 - Runtime dependencies: Go, Node.js, and `uv` are installed by the collection during `converge`
 - Ansible/Molecule: Pre-installed for testing
+
+### Collection Installation
+
+The collection is installed to `/tmp/ansible_collections/ansible/mcp_builder` inside the test container during the `prepare` step. This path is configured in `molecule.yml` via `ANSIBLE_COLLECTIONS_PATH` environment variable. The collection is copied from the mounted workspace (`/workspace/ansible.mcp_builder`) to ensure the latest code is tested.
 
 ## Test Coverage
 
