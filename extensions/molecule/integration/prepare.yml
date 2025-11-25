@@ -31,7 +31,6 @@
             {{ playbook_dir }}/../..
           {%- endif -%}
 
-
     - name: Ensure galaxy.yml exists
       ansible.builtin.stat:
         path: "{{ collection_root }}/galaxy.yml"
