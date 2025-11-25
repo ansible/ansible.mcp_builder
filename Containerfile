@@ -38,12 +38,12 @@ RUN pip3 install --no-cache-dir --upgrade pip && \
     pytest \
     pytest-ansible
 
-RUN if [ ! -f /etc/redhat-release ]; then \
-      echo "Red Hat Enterprise Linux release 9.0 (Plow)" > /etc/redhat-release; \
-    fi
+# RUN if [ ! -f /etc/redhat-release ]; then \
+#       echo "Red Hat Enterprise Linux release 9.0 (Plow)" > /etc/redhat-release; \
+#     fi
 
-RUN DISTRO=rhel RELEASE=9 bash -c 'curl -fsSL https://rpm.nodesource.com/setup_20.x | bash -' || \
-    echo "Warning: NodeSource setup may have failed, but continuing build"
+# RUN DISTRO=rhel RELEASE=9 bash -c 'curl -fsSL https://rpm.nodesource.com/setup_20.x | bash -' || \
+#     echo "Warning: NodeSource setup may have failed, but continuing build"
 
 RUN mkdir -p /opt/mcp /workspace /go /tmp/go-cache
 

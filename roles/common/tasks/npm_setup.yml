@@ -1,16 +1,8 @@
 ---
 # Node.js and npm setup tasks
 
-- name: Set up NodeSource repository
+- name: Set up NodeSource repository and install Node.js
   ansible.builtin.include_tasks: nodesource_setup.yml
-  vars:
-    nodesource_version: "{{ common_nodejs_min_version | default(20) }}"
-
-- name: Install Node.js and npm via system package manager
-  ansible.builtin.package:
-    name: nodejs
-    state: present
-  become: true
 
 - name: Verify Node.js installation
   ansible.builtin.command: node --version

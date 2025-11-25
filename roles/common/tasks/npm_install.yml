@@ -22,16 +22,8 @@
 - name: "Install Node.js from NodeSource (version: {{ common_nodejs_min_version }})"
   when: common_node_check.stdout != "sufficient"
   block:
-    - name: Set up NodeSource repository
+    - name: Set up NodeSource repository and install Node.js
       ansible.builtin.include_tasks: nodesource_setup.yml
-      vars:
-        nodesource_version: "{{ common_nodejs_min_version }}"
-
-    - name: "Install Node.js package (version: {{ common_nodejs_min_version }})"
-      ansible.builtin.package:
-        name: nodejs
-        state: present
-      become: true
 
 - name: Verify Node.js installation
   ansible.builtin.command: node --version
