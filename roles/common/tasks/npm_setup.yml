@@ -1,6 +1,5 @@
 ---
 # Node.js and npm setup tasks
-
 - name: Set up NodeSource repository and install Node.js
   ansible.builtin.include_tasks: nodesource_setup.yml
 

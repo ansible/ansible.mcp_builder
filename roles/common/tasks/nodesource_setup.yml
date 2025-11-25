@@ -25,16 +25,3 @@
     path: /tmp/nodesource_setup.sh
     state: absent
   become: true
-# # Only for RedHat-based distros
-# - name: Refresh dnf cache
-#   ansible.builtin.command: dnf makecache
-#   become: true
-#   changed_when: false
-#   failed_when: false
-#   when: ansible_os_family == 'RedHat'
-
-# - name: Clean up NodeSource setup script
-#   ansible.builtin.file:
-#     path: /tmp/nodesource_setup.sh
-#     state: absent
-#   become: true
