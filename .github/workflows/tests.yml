@@ -1,47 +1,47 @@
 ---
-name: "CI"
-concurrency:
-  group: ${{ github.head_ref || github.run_id }}
-  cancel-in-progress: true
-on: # yamllint disable-line rule:truthy
-  pull_request:
-    branches: [main]
-  workflow_dispatch:
+  name: "CI"
+  concurrency:
+    group: ${{ github.head_ref || github.run_id }}
+    cancel-in-progress: true
+  on: # yamllint disable-line rule:truthy
+    pull_request:
+      branches: [main]
+    workflow_dispatch:
 
-permissions:
-  contents: read
-  packages: write
+  permissions:
+    contents: read
+    packages: write
 
-jobs:
-  changelog:
-    uses: ansible/ansible-content-actions/.github/workflows/changelog.yaml@main
-    if: github.event_name == 'pull_request'
+  jobs:
+    changelog:
+      uses: ansible/ansible-content-actions/.github/workflows/changelog.yaml@main
+      if: github.event_name == 'pull_request'
 
-  build-import:
-    uses: ansible/ansible-content-actions/.github/workflows/build_import.yaml@main
+    build-import:
+      uses: ansible/ansible-content-actions/.github/workflows/build_import.yaml@main
 
-  ansible-lint:
-    uses: ansible/ansible-content-actions/.github/workflows/ansible_lint.yaml@main
+    ansible-lint:
+      uses: ansible/ansible-content-actions/.github/workflows/ansible_lint.yaml@main
 
-  sanity:
-    uses: ansible/ansible-content-actions/.github/workflows/sanity.yaml@main
+    sanity:
+      uses: ansible/ansible-content-actions/.github/workflows/sanity.yaml@main
 
-  unit-galaxy:
-    uses: ansible/ansible-content-actions/.github/workflows/unit.yaml@main
+    unit-galaxy:
+      uses: ansible/ansible-content-actions/.github/workflows/unit.yaml@main
 
-  # NEW: Build or pull test image before integration tests
-  build-test-image:
-    name: Build Test Image
-    runs-on: ubuntu-latest
-    needs: [ansible-lint]
-    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
-    permissions:
-      contents: read
-      packages: write
-    outputs:
-      image_tag: ${{ steps.determine.outputs.image_tag }}
+    # Build test base image before integration tests
+    build-test-image:
+      name: Build Test Image
+      runs-on: ubuntu-latest
+      needs: [ansible-lint]
+      if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+      permissions:
+        contents: read
+        packages: write
+      outputs:
+        image_tag: ${{ steps.determine.outputs.image_tag }}
 
-    steps:
+      steps:
         - name: Checkout code
           uses: actions/checkout@v4
 
@@ -55,19 +55,15 @@ jobs:
         - name: Determine if image exists and set tag
           id: determine
           run: |
-            # Use PR-specific tag for PRs, latest for main branch
-            if [ "${{ github.event_name }}" == "pull_request" ]; then
-              IMAGE_TAG="ghcr.io/${{ github.repository_owner }}/mcp-builder-test-base:pr-${{ github.event.pull_request.number }}"
-            else
-              IMAGE_TAG="ghcr.io/${{ github.repository_owner }}/mcp-builder-test-base:latest"
-            fi
+            # Always use 'latest' tag so integration tests can find it
+            IMAGE_TAG="ghcr.io/${{ github.repository_owner }}/mcp-builder-test-base:latest"
 
             # Try to pull the image
             if docker pull "$IMAGE_TAG" 2>/dev/null; then
-              echo "Image exists in registry: $IMAGE_TAG"
+              echo "✅ Image exists in registry: $IMAGE_TAG"
               echo "image_exists=true" >> $GITHUB_OUTPUT
             else
-              echo "Image does not exist, will build it: $IMAGE_TAG"
+              echo "⚠️ Image does not exist, will build it: $IMAGE_TAG"
               echo "image_exists=false" >> $GITHUB_OUTPUT
             fi
 
@@ -96,39 +92,66 @@ jobs:
             docker pull ${{ steps.determine.outputs.image_tag }}
             docker run --rm ${{ steps.determine.outputs.image_tag }} ansible --version
             docker run --rm ${{ steps.determine.outputs.image_tag }} python3 --version
+            echo "✅ Image verified: ${{ steps.determine.outputs.image_tag }}"
 
-  integration:
-    uses: ansible/ansible-content-actions/.github/workflows/integration.yaml@main
-    needs: [ansible-lint, build-test-image]
-    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+    # Use reusable integration workflow (gets matrix testing)
+    integration:
+      uses: ansible/ansible-content-actions/.github/workflows/integration.yaml@main
+      needs: [ansible-lint, build-test-image]
+      if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+      # The integration workflow will use MOLECULE_IMAGE from tox-ansible.ini
+      # which defaults to ghcr.io/ansible/mcp-builder-test-base:latest
 
-  all_green:
-    if: ${{ always() }}
-    needs:
-      - changelog
-      - build-import
-      - sanity
-      - unit-galaxy
-      - integration
-      - ansible-lint
-    runs-on: ubuntu-latest
-    steps:
+    all_green:
+      if: ${{ always() }}
+      needs:
+        - changelog
+        - build-import
+        - sanity
+        - unit-galaxy
+        - integration
+        - ansible-lint
+      runs-on: ubuntu-latest
+      steps:
         - name: Check test results
           run: |
+            echo "=== Test Results ==="
             echo "Ansible Lint: ${{ needs.ansible-lint.result }}"
             echo "Sanity Tests: ${{ needs.sanity.result }}"
             echo "Unit Tests: ${{ needs.unit-galaxy.result }}"
-            echo "Integration: ${{ needs.integration.result }}"
+            echo "Integration Tests: ${{ needs.integration.result }}"
             echo "Changelog: ${{ needs.changelog.result }}"
             echo "Build Import: ${{ needs.build-import.result }}"
+            echo "===================="
 
             # Don't fail on skipped changelog (only required for PRs)
-            if [ "${{ needs.ansible-lint.result }}" != "success" ] || \
-               [ "${{ needs.sanity.result }}" != "success" ] || \
-               [ "${{ needs.unit-galaxy.result }}" != "success" ] || \
-               [ "${{ needs.integration.result }}" != "success" ]; then
-              echo "Some tests failed"
+            FAILED=0
+
+            if [ "${{ needs.ansible-lint.result }}" != "success" ]; then
+              echo "❌ ansible-lint failed"
+              FAILED=1
+            fi
+
+            if [ "${{ needs.sanity.result }}" != "success" ]; then
+              echo "❌ sanity tests failed"
+              FAILED=1
+            fi
+
+            if [ "${{ needs.unit-galaxy.result }}" != "success" ]; then
+              echo "❌ unit tests failed"
+              FAILED=1
+            fi
+
+            if [ "${{ needs.integration.result }}" != "success" ]; then
+              echo "❌ integration tests failed"
+              FAILED=1
+            fi
+
+            if [ $FAILED -eq 1 ]; then
+              echo ""
+              echo "❌ Some tests failed"
               exit 1
             else
-              echo "All tests passed!"
+              echo ""
+              echo "✅ All tests passed!"
             fi
