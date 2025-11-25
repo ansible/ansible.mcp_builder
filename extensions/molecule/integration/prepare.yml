@@ -56,7 +56,29 @@
           - "MOLECULE_PROJECT_DIRECTORY: {{ molecule_dir }}"
           - "GITHUB_WORKSPACE: {{ github_workspace }}"
       when: ansible_verbosity >= 0
+    - name: Debug workspace contents
+      ansible.builtin.shell: |
+        set -o pipefail
+        echo "=== /workspace contents ==="
+        ls -la /workspace/ 2>&1 | head -20 || echo "Cannot list /workspace"
+        echo ""
+        echo "=== Looking for galaxy.yml ==="
+        find /workspace -name "galaxy.yml" -type f 2>&1 | head -5 || echo "galaxy.yml not found"
+        echo ""
+        echo "=== /workspace structure ==="
+        ls -la /workspace/ | grep -E "(galaxy|roles|playbooks|extensions)" || echo "No collection files visible"
+      args:
+        executable: /bin/bash
+      register: workspace_debug
+      changed_when: false
+      when: ansible_verbosity >= 0
+
+    - name: Display workspace debug
+      ansible.builtin.debug:
+        var: workspace_debug.stdout_lines
+      when: ansible_verbosity >= 0
     # DEBUG END
+
     - name: Ensure galaxy.yml exists
       ansible.builtin.stat:
         path: "{{ collection_root }}/galaxy.yml"
