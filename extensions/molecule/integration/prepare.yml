@@ -47,6 +47,16 @@
             {{ playbook_dir }}/../..
           {%- endif -%}
 
+# DEBUG: Debug collection root detection
+    - name: Debug collection root detection
+      ansible.builtin.debug:
+        msg:
+          - "Collection root detected: {{ collection_root }}"
+          - "Ansible connection: {{ ansible_connection }}"
+          - "MOLECULE_PROJECT_DIRECTORY: {{ molecule_dir }}"
+          - "GITHUB_WORKSPACE: {{ github_workspace }}"
+      when: ansible_verbosity >= 0
+# DEBUG END
     - name: Ensure galaxy.yml exists
       ansible.builtin.stat:
         path: "{{ collection_root }}/galaxy.yml"
