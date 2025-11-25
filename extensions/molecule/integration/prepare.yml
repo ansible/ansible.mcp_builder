@@ -35,7 +35,9 @@
     - name: Set collection root based on detected paths
       ansible.builtin.set_fact:
         collection_root: >-
-          {%- if molecule_dir and molecule_dir.endswith('/extensions') -%}
+          {%- if ansible_connection == 'podman' or ansible_connection == 'docker' -%}
+            /workspace
+          {%- elif molecule_dir and molecule_dir.endswith('/extensions') -%}
             {{ molecule_dir | dirname }}
           {%- elif molecule_dir -%}
             {{ molecule_dir }}
