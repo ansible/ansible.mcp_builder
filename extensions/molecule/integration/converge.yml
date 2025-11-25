@@ -4,7 +4,7 @@
   gather_facts: true
 
   tasks:
-  # DEBUG: Verify execution environment
+    # DEBUG: Verify execution environment
     - name: Verify execution environment (DEBUG)
       ansible.builtin.debug:
         msg:
