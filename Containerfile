@@ -1,4 +1,4 @@
-FROM registry.access.redhat.com/ubi9/ubi:latest
+Hey FROM registry.access.redhat.com/ubi9/python-311:latest
 
 LABEL org.opencontainers.image.source=https://github.com/ansible/ansible.mcp_builder
 LABEL org.opencontainers.image.authors="Ansible Content Team"
@@ -32,7 +32,7 @@ RUN dnf install -y --allowerasing \
 
 RUN pip3 install --no-cache-dir --upgrade pip && \
     pip3 install --no-cache-dir \
-    ansible-core>=2.14 \
+    ansible-core>=2.18 \
     molecule \
     molecule-plugins[podman] \
     pytest \

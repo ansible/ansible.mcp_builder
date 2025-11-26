@@ -1,2 +1,0 @@
-roles/common/templates/mcp_manage.j2 shebang
-tools/builder.sh shebang
