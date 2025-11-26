@@ -16,17 +16,15 @@
   changed_when: common_pypi_installed_result.rc == 0
 
 - name: Get target user's HOME directory
-  ansible.builtin.command: echo $HOME
-  register: common_target_home
-  changed_when: false
-  failed_when: false
+  ansible.builtin.set_fact:
+    common_target_home: "{{ ansible_env.HOME | default(lookup('env', 'HOME')) }}"
 
 - name: Check common uv installation locations
   ansible.builtin.stat:
     path: "{{ uv_path_item }}"
   loop:
-    - "{{ common_target_home.stdout }}/.cargo/bin/uv"
-    - "{{ common_target_home.stdout }}/.local/bin/uv"
+    - "{{ common_target_home }}/.cargo/bin/uv"
+    - "{{ common_target_home }}/.local/bin/uv"
     - "{{ common_system_bin_path }}/uv"
     - "/usr/bin/uv"
   loop_control:
@@ -47,15 +45,15 @@
 
 - name: Search for uv binary in home directory as fallback
   ansible.builtin.find:
-    paths: "{{ common_target_home.stdout }}"
+    paths: "{{ common_target_home }}"
     patterns: "uv"
     file_type: file
     recurse: true
   register: common_uv_search_fallback
   when:
     - common_uv_path is not defined
-    - common_target_home.stdout is defined
-    - common_target_home.stdout != ""
+    - common_target_home is defined
+    - common_target_home != ""
 
 - name: Set uv path from search fallback
   ansible.builtin.set_fact:
