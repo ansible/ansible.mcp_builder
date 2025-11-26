@@ -1,0 +1,52 @@
+---
+dependency:
+  name: galaxy
+  options:
+    requirements-file: ${MOLECULE_SCENARIO_DIRECTORY}/requirements.yml
+
+driver:
+  name: podman
+
+platforms:
+  - name: ubi9-instance
+    image: ${MOLECULE_IMAGE:-ghcr.io/ansible/mcp-builder-test-base:latest}
+    pre_build_image: true
+    privileged: false
+    volumes:
+      - ${MOLECULE_PROJECT_DIRECTORY}/../..:/workspace:Z
+
+provisioner:
+  name: ansible
+  config_options:
+    defaults:
+      callbacks_enabled: ansible.posix.profile_tasks
+      stdout_callback: default
+      result_format: yaml
+      allow_broken_conditionals: true
+      remote_tmp: /tmp
+      collections_paths:
+        - /tmp/ansible_collections
+  env:
+    ANSIBLE_ALLOW_BROKEN_CONDITIONALS: "true"
+    ANSIBLE_COLLECTIONS_PATH: /tmp/ansible_collections:${ANSIBLE_COLLECTIONS_PATH}
+  inventory:
+    host_vars:
+      ubi9-instance:
+        ansible_python_interpreter: /usr/bin/python3
+        ansible_user: root
+        ansible_become: true
+        common_mcp_base_path: /opt/mcp
+        azure_mcp_install_path: /opt/mcp
+
+scenario:
+  test_sequence:
+    - dependency
+    - syntax
+    - create
+    - prepare
+    - converge
+    - verify
+    - destroy
+
+verifier:
+  name: ansible

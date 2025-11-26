@@ -1,0 +1,27 @@
+# Shared task: Set up NodeSource repository for Node.js installation
+# This is used by both npm_install.yml and npm_setup.yml
+
+- name: Download NodeSource setup script
+  ansible.builtin.get_url:
+    url: https://rpm.nodesource.com/setup_{{ common_nodejs_min_version }}.x
+    dest: /tmp/nodesource_setup.sh
+    mode: "0755"
+  become: true
+
+- name: Run NodeSource setup script
+  ansible.builtin.command:
+    cmd: bash /tmp/nodesource_setup.sh
+    creates: /etc/yum.repos.d/nodesource*.repo
+  become: true
+
+- name: "Install Node.js package (version: {{ common_nodejs_min_version }})"
+  ansible.builtin.package:
+    name: nodejs
+    state: present
+  become: true
+
+- name: Clean up NodeSource setup script
+  ansible.builtin.file:
+    path: /tmp/nodesource_setup.sh
+    state: absent
+  become: true
