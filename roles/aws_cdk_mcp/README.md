@@ -24,42 +24,14 @@ The server requires AWS credentials to be configured. You can use any of the fol
 
 3. IAM Roles (for EC2/Lambda): The server will automatically use IAM roles when running on AWS services.
 
-## Registry Integration
-
-This role automatically registers the GitHub MCP server in the global registry:
-
-```yaml
-aws_cdk_mcp_registry:
-  - name: "awslabs.cdk-mcp-server"
-    lang: "pypi"
-    type: stdio
-    args: []
-```
-
-The server is installed via `uv` and can be executed via:
-```bash
-mcp_manage run awslabs.cdk-mcp-server
-```
-
-## Example Usage
-
-To be added.
-
-```
-
 ## Usage
 
-After installation, the AWS CDK MCP server can be managed via the `mcp_manage` script:
+To install the `aws_cdk_mcp` server using this role, add it to the `mcp_server` list when calling the primary `install_mcp` playbook in an EE definition file.
 
-```bash
-# List all servers
-mcp_manage list
+```
+RUN ansible-playbook ansible.mcp_builder.install_mcp -e mcp_servers=aws_cdk_mcp
+```
 
-# Get information about the MCP server
-mcp_manage info awslabs.cdk-mcp-server
+## License
 
-# Run the MCP server
-mcp_manage run awslabs.cdk-mcp-server
-
-# Run with additional arguments
-mcp_manage run awslabs.cdk-mcp-server --example-arg
+GNU General Public License v3.0 or later. See [LICENSE](https://www.gnu.org/licenses/gpl-3.0.txt) to see the full text.

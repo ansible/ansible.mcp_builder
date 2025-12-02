@@ -1,0 +1,26 @@
+---
+galaxy_info:
+  role_name: "azure_mcp"
+  author: "Red Hat"
+  description: "Installs the Azure MCP server from npm to interact with Azure resources"
+  license: "GPL-3.0-or-later"
+  min_ansible_version: "2.18.0"
+
+  platforms:
+    - name: EL
+      versions:
+        - "9"
+    - name: Fedora
+      versions:
+        - all
+
+  galaxy_tags:
+    - mcp
+    - aws
+    - core
+    - image
+    - builder
+    - ee
+
+collections:
+  - ansible.mcp

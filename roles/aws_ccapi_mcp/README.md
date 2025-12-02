@@ -32,40 +32,14 @@ The server's default behavior can be customized through environment variables, s
 
 See the documentation [here](https://awslabs.github.io/mcp/servers/ccapi-mcp-server#server-configuration) for configuration details on tagging resources and security scanning options.
 
-## Registry Integration
-
-This role automatically registers the GitHub MCP server in the global registry:
-
-```yaml
-aws_ccapi_mcp_registry:
-  - name: "awslabs.ccapi-mcp-server"
-    lang: "pypi"
-    type: stdio
-    args: []
-```
-
-The server is installed via `uv` and can be executed via:
-```bash
-mcp_manage run awslabs.ccapi-mcp-server
-```
-
-## Example Usage
-
-To be added.
-
 ## Usage
 
-After installation, the MCP server can be managed via the `mcp_manage` script:
+To install the `aws_ccapi_mcp` server using this role, add it to the `mcp_server` list when calling the primary `install_mcp` playbook in an EE definition file.
 
-```bash
-# List all servers
-mcp_manage list
+```
+RUN ansible-playbook ansible.mcp_builder.install_mcp -e mcp_servers=aws_ccapi_mcp
+```
 
-# Get information about the MCP server
-mcp_manage info awslabs.ccapi-mcp-server
+## License
 
-# Run the MCP server
-mcp_manage run awslabs.ccapi-mcp-server
-
-# Run with additional arguments
-mcp_manage run awslabs.ccapi-mcp-server --example-arg
+GNU General Public License v3.0 or later. See [LICENSE](https://www.gnu.org/licenses/gpl-3.0.txt) to see the full text.
