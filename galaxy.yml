@@ -22,7 +22,6 @@ build_ignore:
   - .ansible/
   - .github/
   - Containerfile
-
 # Will be added once released
 # dependencies:
 #   "ansible.mcp": ">=1.0.0"
