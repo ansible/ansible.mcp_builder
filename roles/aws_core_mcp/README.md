@@ -25,41 +25,14 @@ The server requires AWS credentials to be configured. You can use any of the fol
     export AWS_REGION=us-east-1
     ```
 
-## Registry Integration
-
-This role automatically registers the GitHub MCP server in the global registry:
-
-```yaml
-aws_core_mcp_registry:
-  - name: "awslabs.core-mcp-server"
-    lang: "pypi"
-    type: stdio
-    args: []
-```
-
-The server is installed via `uv` and can be executed via:
-```bash
-mcp_manage run awslabs.core-mcp-server
-```
-
-## Example Usage
-
-To be added.
-
 ## Usage
 
-After installation, the AWS Core MCP server can be managed via the `mcp_manage` script:
+To install the `aws_core_mcp` server using this role, add it to the `mcp_server` list when calling the primary `install_mcp` playbook in an EE definition file.
 
-```bash
-# List all servers
-mcp_manage list
-
-# Get information about the MCP server
-mcp_manage info awslabs.core-mcp-server
-
-# Run the MCP server
-mcp_manage run awslabs.core-mcp-server
-
-# Run with additional arguments
-mcp_manage run awslabs.core-mcp-server --example-arg
 ```
+RUN ansible-playbook ansible.mcp_builder.install_mcp -e mcp_servers=aws_core_mcp
+```
+
+## License
+
+GNU General Public License v3.0 or later. See [LICENSE](https://www.gnu.org/licenses/gpl-3.0.txt) to see the full text.

@@ -31,27 +31,6 @@ The common role uses a registry system to discover MCP servers from all roles. E
 - **`pypi`** - Python packages installed with `uv tool install` (executables in `/opt/mcp/bin/`)
 - **`go`** - Source builds compiled to `/opt/mcp/bin/`
 
-## Generated Files
+## License
 
-- **`/opt/mcp/mcpservers.json`** - JSON manifest of all MCP servers
-- **`/opt/mcp/mcp_manage`** - Server management script
-
-```
-
-## Using the Management Script
-
-After installation, use the `mcp_manage` script to interact with servers:
-
-```bash
-# List all available servers
-mcp_manage list
-
-# Get server information
-mcp_manage info github-mcp-server
-
-# Run a server
-mcp_manage run github-mcp-server
-
-# Run with additional arguments
-mcp_manage run github-mcp-server --debug
-```
+GNU General Public License v3.0 or later. See [LICENSE](https://www.gnu.org/licenses/gpl-3.0.txt) to see the full text.

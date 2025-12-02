@@ -13,16 +13,11 @@ This role supports two deployment modes:
 ### Remote Mode
 - Uses GitHub's hosted MCP service at `https://api.githubcopilot.com/mcp/`
 
-
 ## Configuration
 
 ### Switching to remote mode
 
-Set the `github_mcp_mode` variable in your playbook or extra vars:
-
-```bash
-ansible-playbook install_mcp.yml -e mcp_servers=github_mcp -e github_mcp_mode=remote
-```
+Set the `github_mcp_mode` variable to `'remote'`.
 
 ### Authentication
 
@@ -38,57 +33,23 @@ To configure allowed functionality for local mode, see the GitHub MCP server's [
 
 To configure toolsets in remote mode, set the `github_mcp_registry.path` to the desired toolset URL (see GitHub's remote toolset documentation [here](https://github.com/github/github-mcp-server/blob/main/docs/remote-server.md#remote-mcp-toolsets)).
 
-## Registry Integration
+## Variables
 
-This role automatically registers the GitHub MCP server based on the selected mode:
-
-### Local
-
-```yaml
-github_mcp_registry:
-  - name: "github-mcp-server"
-    type: "stdio"
-    lang: "go"
-    args: ["stdio"]
-    description: "GitHub MCP Server (local build)"
-```
-
-### Remote
-
-```yaml
-github_mcp_registry:
-  - name: "github-mcp-server"
-    type: "http"
-    path: "https://api.githubcopilot.com/mcp/"
-    args: []
-    description: "GitHub MCP Server (remote)"
-```
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `github_mcp_build_repo` | `["https://github.com/github/github-mcp-server.git"]` | Repository for the Github MCP server source. |
+| `github_mcp_build_repo_branch` | `["main"]` | Branch to pull source from. |
+| `github_mcp_mode` | `["local"]` | Install the Github MCP server locally or use the remotely hosted Github MCP server. |
+| `github_mcp_registry.path` | `["https://api.githubcopilot.com/mcp/"]` | Endpoint for specified MCP server tools. Can be modified to more specific toolsets. |
 
 ## Usage
 
-After installation, manage the server via `mcp_manage`.
+To install the `github_mcp` server using this role, add it to the `mcp_server` list when calling the primary `install_mcp` playbook in an EE definition file.
 
-### Local Mode
-
-```bash
-# List all servers
-mcp_manage list
-
-# Get information about the MCP server
-mcp_manage info github-mcp-server
-
-# Run the MCP server
-mcp_manage run github-mcp-server
-
-# Run with additional arguments
-mcp_manage run github-mcp-server --debug --gh-host github.enterprise.com
+```
+RUN ansible-playbook ansible.mcp_builder.install_mcp -e mcp_servers=github_mcp
 ```
 
-### Remote Mode
+## License
 
-```bash
-# View connection details
-mcp_manage info github-mcp-server
-
-# Note: Remote servers are accessed through MCP clients, not run locally
-```
+GNU General Public License v3.0 or later. See [LICENSE](https://www.gnu.org/licenses/gpl-3.0.txt) to see the full text.
