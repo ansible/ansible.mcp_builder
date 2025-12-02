@@ -1,3 +1,4 @@
+---
 # Shared task: Set up NodeSource repository for Node.js installation
 # This is used by both npm_install.yml and npm_setup.yml
 
