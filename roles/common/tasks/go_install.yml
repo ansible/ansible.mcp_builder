@@ -14,7 +14,11 @@
 
 - name: Get Go build details from role variables
   ansible.builtin.set_fact:
-    common_go_build_details: "{{ common_go_build_details | combine({build_var.replace(common_parent_role_prefix + '_build_', ''): lookup('vars', build_var)}) }}"
+    common_go_build_details: "{{ common_go_build_details | combine(new_entry) }}"
+  vars:
+    var_key: "{{ build_var.replace(common_parent_role_prefix + '_build_', '') }}"
+    var_value: "{{ lookup('vars', build_var) }}"
+    new_entry: "{{ {var_key: var_value} }}"
   loop: "{{ q('varnames', common_parent_role_prefix + '_build_.+') }}"
   loop_control:
     loop_var: build_var
