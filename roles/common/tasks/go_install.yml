@@ -1,16 +1,24 @@
 ---
 # Go installation tasks
 
+- name: Get parent role name for build variables
+  ansible.builtin.set_fact:
+    common_parent_role_prefix: "{{ ansible_parent_role_names[0].split('.')[-1] }}"
+  when:
+    - ansible_parent_role_names is defined
+    - ansible_parent_role_names | length > 0
+
 - name: Initialize Go build details dictionary
   ansible.builtin.set_fact:
     common_go_build_details: {}
 
 - name: Get Go build details from role variables
   ansible.builtin.set_fact:
-    common_go_build_details: "{{ common_go_build_details | combine({var_name.replace(item + '_build_', ''): lookup('vars', var_name)}) }}"
-  loop: "{{ q('varnames', item + '_build_.+') }}"
+    common_go_build_details: "{{ common_go_build_details | combine({build_var.replace(common_parent_role_prefix + '_build_', ''): lookup('vars', build_var)}) }}"
+  loop: "{{ q('varnames', common_parent_role_prefix + '_build_.+') }}"
   loop_control:
-    loop_var: var_name
+    loop_var: build_var
+  when: common_parent_role_prefix is defined
 
 - name: Set Go build info from registry entry
   ansible.builtin.set_fact:
