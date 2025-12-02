@@ -90,7 +90,7 @@ This approach allows you to create custom execution environments with only the M
 
 Deploy an Execution Environment with the GitHub MCP server to automate GitHub operations through Ansible playbooks. This enables you to create issues, manage pull requests, and interact with repositories programmatically.
 
-**Example workflow**: Build an EE with the GitHub MCP server for automated issue tracking and repository management in CI/CD pipelines. After building the EE, use it to run playbooks that create issues, label pull requests, or manage repository settings. 
+**Example workflow**: Build an EE with the GitHub MCP server for automated issue tracking and repository management in CI/CD pipelines. After building the EE, use it to run playbooks that create issues, label pull requests, or manage repository settings.
 
 To run the playbook locally with the EE, use:
 
