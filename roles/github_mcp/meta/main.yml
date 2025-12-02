@@ -1,0 +1,26 @@
+---
+galaxy_info:
+  role_name: "github_mcp"
+  author: "Red Hat"
+  description: "Installs the GitHub MCP server with support for local (build from source) and remote modes"
+  license: "GPL-3.0-or-later"
+  min_ansible_version: "2.18.0"
+
+  platforms:
+    - name: EL
+      versions:
+        - "9"
+    - name: Fedora
+      versions:
+        - all
+
+  galaxy_tags:
+    - mcp
+    - github
+    - git
+    - image
+    - builder
+    - ee
+
+collections:
+  - ansible.mcp

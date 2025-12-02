@@ -1,0 +1,26 @@
+---
+galaxy_info:
+  role_name: "aws_core_mcp"
+  author: "Red Hat"
+  description: "Installs the AWS Core MCP server from PyPI with dynamic proxy server strategy"
+  license: "GPL-3.0-or-later"
+  min_ansible_version: "2.18.0"
+
+  platforms:
+    - name: EL
+      versions:
+        - "9"
+    - name: Fedora
+      versions:
+        - all
+
+  galaxy_tags:
+    - mcp
+    - aws
+    - core
+    - image
+    - builder
+    - ee
+
+collections:
+  - ansible.mcp
