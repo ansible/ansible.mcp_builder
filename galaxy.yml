@@ -19,8 +19,9 @@ issues: https://github.com/ansible/mcp_builder/issues
 tags: [ai, tools, mcp]
 
 build_ignore:
+  - .ansible/
   - .github/
-  - build/
+  - Containerfile
 
 # Will be added once released
 # dependencies:
