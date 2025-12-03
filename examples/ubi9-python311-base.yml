@@ -1,0 +1,19 @@
+---
+version: 3
+
+images:
+  base_image:
+    name: registry.access.redhat.com/ubi9/python-311:latest
+dependencies:
+  ansible_core:
+    package_pip: ansible-core
+  ansible_runner:
+    package_pip: ansible-runner
+  galaxy: requirements.yml
+
+options:
+  package_manager_path: /usr/bin/dnf
+
+additional_build_steps:
+  append_final: |
+    RUN ansible-playbook ansible.mcp_builder.install_mcp -e mcp_servers=aws_core_mcp,aws_cdk_mcp,aws_ccapi_mcp,aws_iam_mcp,azure_mcp,github_mcp

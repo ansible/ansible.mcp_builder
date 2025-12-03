@@ -18,6 +18,4 @@ enable_list:
 
 # Skip specific rules if needed
 skip_list:
-  - experimental # Skip experimental rules
-  - name[casing] # Allow flexible task naming
   - jinja[spacing] # Skip jinja spacing (suggested fixes are invalid)

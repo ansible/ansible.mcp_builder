@@ -1,0 +1,15 @@
+---
+version: 3
+
+images:
+  base_image:
+    name: ansible-automation-platform-25/ee-minimal-rhel9:latest
+dependencies:
+  galaxy: requirements.yml
+
+options:
+  package_manager_path: /usr/bin/microdnf
+
+additional_build_steps:
+  append_final: |
+    RUN ansible-playbook ansible.mcp_builder.install_mcp -e mcp_servers=aws_core_mcp,aws_cdk_mcp,aws_ccapi_mcp,aws_iam_mcp,azure_mcp,github_mcp
