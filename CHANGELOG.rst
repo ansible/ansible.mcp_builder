@@ -4,6 +4,14 @@ Ansible MCP Builder Collection Release Notes
 
 .. contents:: Topics
 
+v0.0.3
+======
+
+Release Summary
+---------------
+
+Fix broken README link and adjust image tags to the redhat-cop org.
+
 v0.0.2
 ======
 

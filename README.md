@@ -132,14 +132,9 @@ The collection includes example configurations in the `examples/` directory for 
 
 ## Contributing
 
-We welcome contributions to this collection! If you find problems, please open an issue or create a PR against the [ansible.mcp_builder collection repository](https://github.com/ansible-collections/ansible.mcp_builder).
+We welcome contributions to this collection! If you find problems, please open an issue or create a PR against the repository.
 
 For complete details on contributing to Ansible collections, see [Contributing to Ansible-maintained collections](https://docs.ansible.com/ansible/devel/community/contributing_maintained_collections.html#contributing-maintained-collections).
-
-### Community Channels
-
-- [Ansible collection development forum](https://forum.ansible.com/c/project/collection-development/27)
-- [Ansible Community code of conduct](https://docs.ansible.com/ansible/devel/community/code_of_conduct.html)
 
 Please read and familiarize yourself with the Ansible project's [Code of Conduct](https://docs.ansible.com/ansible/devel/community/code_of_conduct.html).
 

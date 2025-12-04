@@ -20,3 +20,13 @@ releases:
     fragments:
       - summary_0.0.2.yml
     release_date: "2025-12-04"
+  0.0.3:
+    changes:
+      release_summary:
+        "Fix broken README link and adjust image tags to the redhat-cop
+        org.
+
+        "
+    fragments:
+      - summary_0.0.3.yml
+    release_date: "2025-12-04"

@@ -9,7 +9,7 @@ driver:
 
 platforms:
   - name: ubi9-instance
-    image: ${MOLECULE_IMAGE:-ghcr.io/ansible/mcp-builder-test-base:latest}
+    image: ${MOLECULE_IMAGE:-ghcr.io/redhat-cop/mcp-builder-test-base:latest}
     pre_build_image: true
     privileged: false
     volumes:

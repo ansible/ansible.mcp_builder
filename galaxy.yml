@@ -1,7 +1,7 @@
 ---
 name: mcp_builder
 namespace: ansible
-version: 0.0.2
+version: 0.0.3
 
 readme: README.md
 description: Ansible collection for installing MCP (Model Context Protocol) servers into execution environments. **Technology Preview**
@@ -12,9 +12,9 @@ authors:
 
 license_file: LICENSE
 
-repository: https://github.com/ansible/mcp_builder
+repository: https://github.com/redhat-cop/ansible.mcp_builder
 
-issues: https://github.com/ansible/mcp_builder/issues
+issues: https://github.com/redhat-cop/ansible.mcp_builder/issues
 
 tags: [ai, tools, mcp]
 
