@@ -2,7 +2,7 @@
 # This script is used to build the container image for the ansible.mcp_builder repository.
 set -euo pipefail
 
-IMAGE_TAG="ghcr.io/ansible/mcp-builder-test-base:latest"
+IMAGE_TAG="ghcr.io/redhat-cop/mcp-builder-test-base:latest"
 PUSH_IMAGE=false
 RUN_TESTS=false
 

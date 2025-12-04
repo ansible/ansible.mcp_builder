@@ -52,7 +52,7 @@ pip install -r requirements-test.txt
 podman build -f tools/Containerfile -t localhost/mcp-builder-test-base:local .
 
 # Or pull from GHCR (if already built)
-podman pull ghcr.io/ansible/mcp-builder-test-base:latest
+podman pull ghcr.io/redhat-cop/mcp-builder-test-base:latest
 ```
 
 ### 2. Run Ansible Lint
@@ -160,7 +160,7 @@ node --version
 # Solution: Build or pull the image
 podman build -f tools/Containerfile -t localhost/mcp-builder-test-base:local .
 # Or pull from GHCR
-podman pull ghcr.io/ansible/mcp-builder-test-base:latest
+podman pull ghcr.io/redhat-cop/mcp-builder-test-base:latest
 ```
 
 #### Issue: Permission denied in container
@@ -214,7 +214,7 @@ Tests run automatically on:
 
 ### Test Image Build
 
-The test base image (`ghcr.io/ansible/mcp-builder-test-base`) is built from `tools/Containerfile`:
+The test base image (`ghcr.io/redhat-cop/mcp-builder-test-base`) is built from `tools/Containerfile`:
 
 - Base: `registry.access.redhat.com/ubi9/ubi:latest` (Python 3.11)
 - System packages: Installed dynamically from `bindep.txt` using `bindep` tool
