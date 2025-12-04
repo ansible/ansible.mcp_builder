@@ -30,7 +30,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 echo "Building container image..."
-podman build -f "$REPO_ROOT/Containerfile" -t $IMAGE_TAG "$REPO_ROOT"
+podman build -f "$REPO_ROOT/tools/Containerfile" -t $IMAGE_TAG "$REPO_ROOT"
 
 echo "Testing the built image..."
 podman run --rm $IMAGE_TAG ansible --version

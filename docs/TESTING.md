@@ -49,7 +49,7 @@ pip install -r requirements-test.txt
 
 ```bash
 # Build locally
-podman build -f Containerfile -t localhost/mcp-builder-test-base:local .
+podman build -f tools/Containerfile -t localhost/mcp-builder-test-base:local .
 
 # Or pull from GHCR (if already built)
 podman pull ghcr.io/ansible/mcp-builder-test-base:latest
@@ -158,7 +158,7 @@ node --version
 
 ```bash
 # Solution: Build or pull the image
-podman build -f Containerfile -t localhost/mcp-builder-test-base:local .
+podman build -f tools/Containerfile -t localhost/mcp-builder-test-base:local .
 # Or pull from GHCR
 podman pull ghcr.io/ansible/mcp-builder-test-base:latest
 ```
@@ -214,7 +214,7 @@ Tests run automatically on:
 
 ### Test Image Build
 
-The test base image (`ghcr.io/ansible/mcp-builder-test-base`) is built from `Containerfile`:
+The test base image (`ghcr.io/ansible/mcp-builder-test-base`) is built from `tools/Containerfile`:
 
 - Base: `registry.access.redhat.com/ubi9/ubi:latest` (Python 3.11)
 - System packages: Installed dynamically from `bindep.txt` using `bindep` tool
