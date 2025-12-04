@@ -4,6 +4,14 @@ Ansible MCP Builder Collection Release Notes
 
 .. contents:: Topics
 
+v0.0.2
+======
+
+Release Summary
+---------------
+
+Cleans up build files and fixes broken links to prepare for 1.0.0 release.
+
 v0.0.1
 ======
 
