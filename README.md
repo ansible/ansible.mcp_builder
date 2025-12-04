@@ -145,6 +145,8 @@ Please read and familiarize yourself with the Ansible project's [Code of Conduct
 
 ## Support
 
+This collection is currently offered as **Technology Preview** content. For details, see [Red Hat's scope of support for Technology Preview features](https://access.redhat.com/support/offerings/techpreview).
+
 For support and questions:
 - **Issues**: Report bugs or request features via [GitHub Issues](https://github.com/ansible-collections/ansible.mcp_builder/issues)
 - **Community Help**: Available on the [Ansible Forum](https://forum.ansible.com/)
