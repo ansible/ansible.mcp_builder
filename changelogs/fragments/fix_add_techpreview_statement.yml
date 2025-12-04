@@ -1,0 +1,4 @@
+---
+bugfixes:
+  - Add tech preview syntax to description and README.md
+  - Add release workflow for Automation Hub.
