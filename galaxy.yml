@@ -12,9 +12,9 @@ authors:
 
 license_file: LICENSE
 
-repository: https://github.com/redhat-cop/mcp_builder
+repository: https://github.com/redhat-cop/ansible.mcp_builder
 
-issues: https://github.com/redhat-cop/mcp_builder/issues
+issues: https://github.com/redhat-cop/ansible.mcp_builder/issues
 
 tags: [ai, tools, mcp]
 

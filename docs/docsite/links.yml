@@ -10,7 +10,7 @@ edit_on_github:
 
 extra_links:
   - description: Report an issue
-    url: https://github.com/redhat-cop/mcp_builder/issues
+    url: https://github.com/redhat-cop/ansible.mcp_builder/issues
 
 # Specify communication channels for your collection. We suggest to not specify more
 # than one place for communication per communication tool to avoid confusion.
