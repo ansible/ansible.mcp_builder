@@ -21,7 +21,9 @@ tags: [ai, tools, mcp]
 build_ignore:
   - .ansible/
   - .github/
-  - Containerfile
+  - .pre-commit-config.yaml
+  - .prettierignore
+  - tools/
 
 # dependencies:
 #   "ansible.mcp": ">=1.0.0"

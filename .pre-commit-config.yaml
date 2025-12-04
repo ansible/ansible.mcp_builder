@@ -9,7 +9,7 @@ repos:
     hooks:
       - id: generate-templates
         name: (Re)generate Portal Templates
-        entry: ansible-playbook generate_template.yaml
+        entry: env ANSIBLE_ROLES_PATH=roles ansible-playbook tools/generate_template.yaml
         language: python
         pass_filenames: false
         additional_dependencies:

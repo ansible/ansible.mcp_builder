@@ -7,12 +7,12 @@
         - main
         - devel
       paths:
-        - 'Containerfile'
+        - 'tools/Containerfile'
         - 'bindep.txt'
         - '.github/workflows/builder.yml'
     pull_request:
       paths:
-        - 'Containerfile'
+        - 'tools/Containerfile'
     workflow_dispatch:
     schedule:
       # Rebuild weekly to get security updates
@@ -61,7 +61,7 @@
           uses: docker/build-push-action@v5
           with:
             context: .
-            file: Containerfile
+            file: tools/Containerfile
             push: ${{ steps.tag.outputs.push_image }}
             tags: ${{ steps.tag.outputs.image_tag }}
             cache-from: type=gha
