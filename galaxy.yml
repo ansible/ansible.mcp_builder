@@ -1,7 +1,7 @@
 ---
 name: mcp_builder
 namespace: ansible
-version: 1.0.0
+version: 0.0.1
 
 readme: README.md
 description: Ansible collection for installing MCP (Model Context Protocol) servers into execution environments. **Technology Preview**
