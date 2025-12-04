@@ -145,10 +145,11 @@ Please read and familiarize yourself with the Ansible project's [Code of Conduct
 
 ## Support
 
-This collection is currently offered as **Technology Preview** content. For details, see [Red Hat's scope of support for Technology Preview features](https://access.redhat.com/support/offerings/techpreview).
+This collection is currently offered as **Technology Preview** content.
 
 For support and questions:
-- **Issues**: Report bugs or request features via [GitHub Issues](https://github.com/ansible-collections/ansible.mcp_builder/issues)
+
+- **Issues**: Report bugs or request features via [GitHub Issues](https://github.com/redhat-cop/ansible.mcp_builder/issues)
 - **Community Help**: Available on the [Ansible Forum](https://forum.ansible.com/)
 - **Discussions**: Join the [Ansible collection development forum](https://forum.ansible.com/c/project/collection-development/27)
 

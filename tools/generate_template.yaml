@@ -10,18 +10,18 @@
       ansible.builtin.find:
         file_type: directory
         paths:
-          - "{{ playbook_dir }}/roles"
+          - "{{ playbook_dir }}/../roles"
       register: role_paths
 
     - name: Set role names
       ansible.builtin.set_fact:
         mcp_roles: "{{ role_paths.files | map(attribute='path') | map('basename') }}"
-        mcp_extension_dir: "{{ playbook_dir }}/extensions/mcp"
+        mcp_extension_dir: "{{ playbook_dir }}/../extensions/mcp"
 
     - name: Create noop task file
       ansible.builtin.copy:
         content: "---\n# Do nothing\n"
-        dest: "{{ playbook_dir }}/roles/{{ item }}/tasks/noop.yaml"
+        dest: "{{ playbook_dir }}/../roles/{{ item }}/tasks/noop.yaml"
         mode: "0644"
       loop: "{{ mcp_roles }}"
 
