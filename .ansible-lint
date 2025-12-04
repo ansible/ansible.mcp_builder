@@ -11,6 +11,7 @@ exclude_paths:
   - .github/
   - tests/output/
   - molecule/
+  - changelogs/changelog.yaml
 
 # Enable specific rules
 enable_list:
