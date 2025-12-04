@@ -4,7 +4,7 @@ namespace: ansible
 version: 1.0.0
 
 readme: README.md
-description: Ansible collection for installing MCP (Model Context Protocol) servers into execution environments.
+description: Ansible collection for installing MCP (Model Context Protocol) servers into execution environments. **Technology Preview**
 
 authors:
   - Alison Hart (@alisonlhart)
@@ -22,6 +22,6 @@ build_ignore:
   - .ansible/
   - .github/
   - Containerfile
-# Will be added once released
+
 # dependencies:
 #   "ansible.mcp": ">=1.0.0"
