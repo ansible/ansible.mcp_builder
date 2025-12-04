@@ -2,10 +2,11 @@ ancestor: null
 releases:
   0.0.1:
     changes:
-      release_summary: 'Pre-release to test releases to Automation Hub and Ansible
+      release_summary:
+        "Pre-release to test releases to Automation Hub and Ansible
         Galaxy.
 
-        '
+        "
     fragments:
-    - summary_create_collection.yml
-    release_date: '2025-12-04'
+      - summary_create_collection.yml
+    release_date: "2025-12-04"
