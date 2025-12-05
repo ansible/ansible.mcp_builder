@@ -31,13 +31,16 @@ ansible.mcp_builder.install_mcp|Installs selected MCP servers
 
 ## Requirements
 
-- **ansible-core**: 2.18.0+
-- **Python**: 3.11+
-- **External dependencies**:
+**ansible-core**: 2.18.0+
+
+**Python**: 3.11+
+
+**Collections**:
+  - `ansible.mcp` for execution of MCP servers.
+
+**External dependencies**:
   - `ansible-builder` for building Execution Environments
   - `podman` or `docker` for container runtime
-- **Collection dependencies**:
-  - `ansible.mcp` for execution of MCP servers.
 
 ## Installation
 
