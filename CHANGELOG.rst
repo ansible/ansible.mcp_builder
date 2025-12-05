@@ -4,6 +4,15 @@ Ansible MCP Builder Collection Release Notes
 
 .. contents:: Topics
 
+v1.0.0-rc2
+==========
+
+Release Summary
+---------------
+
+Pre-release (release candidate 2) of the mcp_builder collection.
+Removes the TESTING documentation from the artifact.
+
 v1.0.0-rc1
 ==========
 
