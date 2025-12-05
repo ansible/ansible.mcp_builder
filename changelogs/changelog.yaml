@@ -30,3 +30,12 @@ releases:
     fragments:
       - summary_0.0.3.yml
     release_date: "2025-12-04"
+  1.0.0-rc1:
+    changes:
+      release_summary:
+        "Pre-release (release candidate 1) of the mcp_builder collection.
+
+        "
+    fragments:
+      - summary_1.0.0_rc1.yml
+    release_date: "2025-12-05"
