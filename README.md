@@ -22,6 +22,11 @@ ansible.mcp_builder.aws_iam_mcp|Installs the [AWS IAM MCP server](https://awslab
 ansible.mcp_builder.azure_mcp|Installs the [Azure MCP server](https://github.com/Azure/azure-mcp) from npm to interact with Azure resources
 ansible.mcp_builder.github_mcp|Installs the [GitHub MCP server](https://github.com/github/github-mcp-server) with support for local (build from source) and remote modes
 
+### Playbooks
+Name | Description
+--- | ---
+ansible.mcp_builder.install_mcp|Installs selected MCP servers
+
 <!--end collection content-->
 
 ## Requirements
