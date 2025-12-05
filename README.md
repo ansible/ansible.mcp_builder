@@ -18,7 +18,7 @@ ansible.mcp_builder.common|Sets up a generic MCP build environment with automati
 ansible.mcp_builder.aws_ccapi_mcp|Installs the [AWS Cloud Control MCP server](https://awslabs.github.io/mcp/servers/ccapi-mcp-server) from PyPI
 ansible.mcp_builder.aws_cdk_mcp|Installs the [AWS CDK MCP server](https://awslabs.github.io/mcp/servers/cdk-mcp-server) from PyPI
 ansible.mcp_builder.aws_core_mcp|Installs the [AWS Core MCP server](https://awslabs.github.io/mcp/servers/core-mcp-server) from PyPI with dynamic proxy server strategy
-ansible.mcp_builder.aws_iam_mcp|Installs the [AWS IAM MCP server](https://awslabs.github.io/mcp/servers/iam-mcp-server/) from PyPI
+ansible.mcp_builder.aws_iam_mcp|Installs the [AWS IAM MCP server](https://awslabs.github.io/mcp/servers/iam-mcp-server) from PyPI
 ansible.mcp_builder.azure_mcp|Installs the [Azure MCP server](https://github.com/Azure/azure-mcp) from npm to interact with Azure resources
 ansible.mcp_builder.github_mcp|Installs the [GitHub MCP server](https://github.com/github/github-mcp-server) with support for local (build from source) and remote modes
 
@@ -150,7 +150,7 @@ For support and questions:
 
 ## Release Notes and Roadmap
 
-Release notes are available in the [CHANGELOG.rst](https://github.com/ansible-collections/ansible.mcp_builder/tree/main/CHANGELOG.rst).
+Release notes are available in the [CHANGELOG.rst](https://github.com/redhat-cop/ansible.mcp_builder/tree/main/CHANGELOG.rst).
 
 ## Related Information
 
